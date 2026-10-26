@@ -6,9 +6,9 @@
   -->
   <PropertyGroup>
     <SupportedNopVersions>4.80;4.90</SupportedNopVersions>
-    <!-- Plugin release number, shared by every nopCommerce line (gives 4.80.10 and 4.90.10).
+    <!-- Plugin release number, shared by every nopCommerce line (gives 4.80.11 and 4.90.11).
          Bump it on every release: resource migrations rerun only when the version changes. -->
-    <PluginRevision>10</PluginRevision>
+    <PluginRevision>11</PluginRevision>
 
     <NopCoreProjectPath>$(MSBuildProjectDirectory)\..\..\Libraries\Nop.Core\Nop.Core.csproj</NopCoreProjectPath>
     <NopVersion Condition="'$(NopVersion)' == '' And Exists('$(NopCoreProjectPath)')">$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(NopCoreProjectPath)')), '&lt;Version&gt;(\d+\.\d+)&lt;/Version&gt;').Groups[1].Value)</NopVersion>

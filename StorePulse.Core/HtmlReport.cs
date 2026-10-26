@@ -4,7 +4,8 @@ using System.Text.Encodings.Web;
 
 namespace StorePulse.Core;
 
-public sealed record HtmlReportInfo(string NopVersion, DateTime? CompletedOnUtc, string HelpBaseUrl);
+/// <param name="GuideUrl">Returns the full guide URL for a check id, or null when there is none.</param>
+public sealed record HtmlReportInfo(string NopVersion, DateTime? CompletedOnUtc, Func<string, string?>? GuideUrl = null);
 
 /// <summary>A self-contained, print-friendly report. Every dynamic value is HTML-encoded.</summary>
 public static class HtmlReport
@@ -91,9 +92,8 @@ public static class HtmlReport
                 if (result.Status != HealthStatus.Healthy && result.Status != HealthStatus.NotApplicable)
                 {
                     html.Append("<p><b>What to do:</b> ").Append(Encode(T(result.RecommendationResourceKey)));
-                    if (!string.IsNullOrEmpty(info?.HelpBaseUrl))
-                        html.Append(" <a href=\"").Append(Encode(info.HelpBaseUrl + result.CheckId.ToLowerInvariant()))
-                            .Append("\">Learn more</a>");
+                    if (info?.GuideUrl?.Invoke(result.CheckId) is { Length: > 0 } guide)
+                        html.Append(" <a href=\"").Append(Encode(guide)).Append("\">Read the guide</a>");
                     html.Append("</p>");
                 }
                 html.Append("</article>");

@@ -177,7 +177,7 @@ public class StorePulseController(IStoreContext storeContext, ScanHistory histor
                 translations[key] = await localization.GetResourceAsync(key);
             return File(System.Text.Encoding.UTF8.GetBytes(HtmlReport.Render(findings,
                     key => translations.TryGetValue(key, out var text) ? text : key,
-                    new HtmlReportInfo(NopVersion.FULL_VERSION, scan.CompletedOnUtc, StorePulseLinks.HelpBase))),
+                    new HtmlReportInfo(NopVersion.FULL_VERSION, scan.CompletedOnUtc, StorePulseLinks.Guide))),
                 "text/html", $"storepulse-{scan.Id}.html");
         }
         // Explicit projection excludes URLs, account identity, raw logs and plugin settings.

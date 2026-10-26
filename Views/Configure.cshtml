@@ -30,6 +30,8 @@
         if (span.TotalDays < 1) return $"{(int)span.TotalHours} h ago";
         return $"{(int)span.TotalDays} days ago";
     }
+    IEnumerable<string> HelpItems(string key)
+        => T(key).Text.Split(StorePulseHelp.ItemSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     string Admin(string checkId)
     {
         var path = StorePulseLinks.AdminPath(checkId);
@@ -178,7 +180,7 @@
                                     {
                                         <a class="btn btn-sm btn-outline-primary" href="@adminUrl"><i class="fas fa-external-link-alt"></i> @T(P + "OpenPage")</a>
                                     }
-                                    <a class="btn btn-sm btn-link" href="@StorePulseLinks.Help(finding.CheckId)" target="_blank" rel="noopener">@T(P + "LearnMore")</a>
+                                    <button type="button" class="btn btn-sm btn-link" data-sp-help="@finding.CheckId"><i class="far fa-question-circle"></i> @T(P + "LearnMore")</button>
                                 </div>
                             </div>
                         </div>
@@ -309,7 +311,7 @@
                                         {
                                             <a class="btn btn-sm btn-outline-primary" href="@adminUrl"><i class="fas fa-external-link-alt"></i> @T(P + "OpenPage")</a>
                                         }
-                                        <a class="btn btn-sm btn-link" href="@StorePulseLinks.Help(finding.CheckId)" target="_blank" rel="noopener">@T(P + "LearnMore") <i class="fas fa-arrow-right"></i></a>
+                                        <button type="button" class="btn btn-sm btn-link" data-sp-help="@finding.CheckId"><i class="far fa-question-circle"></i> @T(P + "LearnMore")</button>
                                     </div>
                                     @if (finding.CheckId == "PLUGIN-006")
                                     {
@@ -387,6 +389,55 @@
         </div>
     }
 
+    @* Help popup: one template per check on the page, copied into the dialog when "Learn more" is clicked. *@
+    @foreach (var helpId in Model.Findings.Select(f => f.CheckId).Distinct())
+    {
+        if (StorePulseHelp.Find(helpId) == null)
+            continue;
+        var helpAdmin = Admin(helpId);
+        var helpGuide = StorePulseLinks.Guide(helpId);
+        <template data-sp-help-for="@helpId">
+            <div data-part="title">@T(P + helpId + ".Title") <span class="sp-id">@helpId</span></div>
+            <div data-part="body">
+                <h4>@T(P + "Help.Checks")</h4>
+                <p>@T(P + helpId + ".Help.Checks")</p>
+                <h4>@T(P + "Why")</h4>
+                <p>@T(P + helpId + ".Why")</p>
+                <h4>@T(P + "Help.Causes")</h4>
+                <ul>@foreach (var item in HelpItems(P + helpId + ".Help.Causes")) { <li>@item</li> }</ul>
+                <h4>@T(P + "Help.Steps")</h4>
+                <ol>@foreach (var item in HelpItems(P + helpId + ".Help.Steps")) { <li>@item</li> }</ol>
+                <h4>@T(P + "Help.Ignore")</h4>
+                <p>@T(P + helpId + ".Help.Ignore")</p>
+            </div>
+            <div data-part="links">
+                @if (helpAdmin != null)
+                {
+                    <a class="btn btn-sm btn-outline-primary" href="@helpAdmin"><i class="fas fa-external-link-alt"></i> @T(P + "OpenPage")</a>
+                }
+                @if (helpGuide != null)
+                {
+                    <a class="btn btn-sm btn-link" href="@helpGuide" target="_blank" rel="noopener">@T(P + "Help.Guide") <i class="fas fa-arrow-right"></i></a>
+                }
+            </div>
+        </template>
+    }
+    <div class="modal fade sp-help" id="sp-help" tabindex="-1" role="dialog" aria-labelledby="sp-help-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="sp-help-title"></h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="@T(P + "Help.Close")"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body" data-sp-help-body></div>
+                <div class="modal-footer">
+                    <div class="sp-actions mr-auto" data-sp-help-links></div>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T(P + "Help.Close")</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <p class="sp-foot">
         <i class="fas fa-lock"></i> @T(P + "Privacy") · @T(P + "Retention")<br />
         StorePulse by <a href="@StorePulseLinks.Website" target="_blank" rel="noopener">Cartenvo</a>
@@ -445,6 +496,24 @@
         });
     });
     if (search) search.addEventListener('input', apply);
+    var help = document.getElementById('sp-help');
+    // Inside the admin content the dialog can end up under the backdrop, so move it to the page body.
+    if (help) document.body.appendChild(help);
+    function fill(target, template, part) {
+        var source = template.content.querySelector('[data-part="' + part + '"]');
+        target.replaceChildren.apply(target, source ? Array.prototype.map.call(source.childNodes, function (n) { return n.cloneNode(true); }) : []);
+    }
+    root.querySelectorAll('[data-sp-help]').forEach(function (button) {
+        button.addEventListener('click', function (e) {
+            var template = root.querySelector('template[data-sp-help-for="' + button.getAttribute('data-sp-help') + '"]');
+            if (!template || !help || !window.jQuery) return;
+            e.preventDefault();
+            fill(help.querySelector('.modal-title'), template, 'title');
+            fill(help.querySelector('[data-sp-help-body]'), template, 'body');
+            fill(help.querySelector('[data-sp-help-links]'), template, 'links');
+            jQuery(help).modal('show');
+        });
+    });
     apply();
 })();
 </script>

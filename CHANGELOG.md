@@ -2,6 +2,13 @@
 
 Versions are `<nopCommerce version>.<release>`, so release 10 is `4.80.10` on nopCommerce 4.80 and `4.90.10` on 4.90.
 
+## 11
+
+- **Help popup.** "Learn more" on each finding opens a popup inside the plugin: what the check looks at, why it matters, common causes, steps to fix it and when it's safe to ignore. The texts are locale resources, so stores can translate them.
+- **Full guides on cartenvo.com.** The popup links to a guide for the check at `cartenvo.com/plugins/storepulse/guides/`. Links carry `utm_source=storepulse` and the check id, nothing about the store. Set `StorePulseLinks.GuidesPublished` to false to hide them.
+- The HTML report links each problem to its guide.
+- Corrected the advice for emails linked to a deleted account: queued emails can't be moved to another account, so delete them and trigger them again.
+
 ## 10
 
 - **nopCommerce 4.80 support.** One source tree now builds for 4.80 and 4.90. Tested on a fresh 4.80.9 store with SQL Server: install, scan, upgrade readiness, settings, scheduled scans, the dashboard card and both report formats.

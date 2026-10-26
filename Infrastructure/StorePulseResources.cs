@@ -34,7 +34,7 @@ public static class StorePulseResources
             "Open Email accounts, set a default account, and use \"Send test email\" to confirm it works."),
         ("EMAIL-006", "Emails linked to a deleted account",
             "Queued emails keep the account they were created with. If that account was deleted, they can never be sent.",
-            "Open Message queue, edit these emails to use a working account, or delete and resend them."),
+            "Open Message queue and delete these emails. Queued emails can't be moved to another account."),
         ("LOG-001", "Fatal errors in the last 24 hours",
             "Fatal errors often mean a page or feature stopped working for customers.",
             "Open System → Log, filter by Fatal, and fix the most recent error first."),
@@ -97,10 +97,10 @@ public static class StorePulseResources
             "Open System → Log, fix the errors that repeat, then clear old entries."),
         ("DB-005", "Activity log size",
             "The activity log can grow to millions of rows and slow down the admin area.",
-            "Open Customers → Activity log, clear old entries, and turn off activity types you don't need."),
+            "Open Customers → Activity Types and turn off types you don't need, then clear old entries from the Activity log."),
         ("DB-006", "Old sent emails",
             "Sent emails stay in the message queue forever unless you delete them.",
-            "Open Message queue, filter sent emails older than 30 days and delete them."),
+            "Open System → Maintenance and use \"Delete already sent emails\" for emails older than 30 days."),
         ("DB-007", "Old shopping carts",
             "Cart items that nobody has touched for 90 days take space and are rarely recovered.",
             "Open System → Maintenance and delete abandoned shopping carts."),
@@ -179,6 +179,9 @@ public static class StorePulseResources
         Add("Filter.Problems", "Problems only"); Add("Filter.All", "All checks"); Add("Search", "Search checks…");
         Add("Why", "Why it matters"); Add("WhatToDo", "What to do"); Add("Evidence", "What we found");
         Add("OpenPage", "Open page"); Add("LearnMore", "Learn more");
+        Add("Help.Checks", "What StorePulse checks"); Add("Help.Causes", "Common causes");
+        Add("Help.Steps", "How to fix it"); Add("Help.Ignore", "When it's safe to ignore");
+        Add("Help.Guide", "Read the full guide on cartenvo.com"); Add("Help.Close", "Close");
         Add("Tab.Overview", "Overview"); Add("Tab.Checks", "All checks"); Add("Tab.History", "History");
         Add("Tab.Plugins", "Plugins"); Add("Tab.Upgrade", "Upgrade readiness");
         Add("Export", "Download report"); Add("Export.Html", "Report (HTML)"); Add("Export.Json", "Data (JSON)");
@@ -254,6 +257,14 @@ public static class StorePulseResources
             Add($"{id}.Title", title);
             Add($"{id}.Why", why);
             Add($"{id}.Action", action);
+        }
+        foreach (var help in StorePulseHelp.All)
+        {
+            var separator = StorePulseHelp.ItemSeparator.ToString();
+            Add($"{help.Id}.Help.Checks", help.Checks);
+            Add($"{help.Id}.Help.Causes", string.Join(separator, help.Causes));
+            Add($"{help.Id}.Help.Steps", string.Join(separator, help.Steps));
+            Add($"{help.Id}.Help.Ignore", help.Ignore);
         }
         foreach (var (metric, label) in MetricLabels)
             Add($"Metric.{metric}", label);

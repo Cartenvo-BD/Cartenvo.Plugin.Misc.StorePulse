@@ -10,6 +10,7 @@ It is **read-only**. A scan changes nothing in your store, runs no tasks, sends 
 
 - **Health score** with a single list of findings, sorted so the most important problems come first ("Fix these first").
 - **Plain-language results.** Each finding explains why it matters, shows the evidence, says what to do and links to the admin page where you can fix it.
+- **Help built in.** "Learn more" opens a popup with common causes, steps to fix and when it's safe to ignore, plus a link to the full guide on [cartenvo.com](https://cartenvo.com/plugins/storepulse/guides).
 - **Since the previous scan** shows new problems and fixed ones, with a score trend over time.
 - **Upgrade readiness** lists the installed plugins that don't yet declare support for the nopCommerce version you plan to move to.
 - **Dashboard card** on the admin home page with the latest score.

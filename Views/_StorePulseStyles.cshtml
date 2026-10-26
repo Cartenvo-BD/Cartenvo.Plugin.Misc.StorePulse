@@ -76,5 +76,13 @@
     .sp .sp-switch { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; }
     .sp .sp-switch input { width: 18px; height: 18px; margin-top: 3px; flex: 0 0 auto; }
     .sp .sp-spin { display: none; } .sp .sp-busy .sp-spin { display: inline-block; } .sp .sp-busy .sp-idle { display: none; }
+    /* Help popup. The script moves it to the end of the page body, outside .sp */
+    .sp-help .modal-title .sp-id { font-size: .8rem; color: #64748b; font-family: SFMono-Regular, Consolas, monospace; margin-left: 6px; }
+    .sp-help .modal-body h4 { font-size: .95rem; font-weight: 600; margin: 18px 0 6px; }
+    .sp-help .modal-body h4:first-child { margin-top: 0; }
+    .sp-help .modal-body p, .sp-help .modal-body li { line-height: 1.5; }
+    .sp-help .modal-body ul, .sp-help .modal-body ol { padding-left: 1.3rem; margin-bottom: 6px; }
+    .sp-help .modal-body li { margin-bottom: 4px; }
+    .sp-help .sp-actions { display: flex; flex-wrap: wrap; gap: 6px; }
     @@media (max-width: 576px) { .sp .sp-detail { padding-left: 16px; } .sp .sp-ring { margin: 0 auto; } .sp .sp-verdict { text-align: center; } .sp .sp-bar { margin: 6px auto 0; } }
 </style>
