@@ -1,0 +1,105 @@
+@model Cartenvo.Plugin.Misc.StorePulse.Models.SettingsModel
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = T("Plugins.Misc.StorePulse.Settings").Text;
+    NopHtml.SetActiveMenuItemSystemName("Misc.StorePulse");
+    const string P = "Plugins.Misc.StorePulse.";
+}
+<partial name="~/Plugins/Misc.StorePulse/Views/_StorePulseStyles.cshtml" />
+
+<div class="sp">
+<form asp-action="Settings" method="post">
+<div class="content-header clearfix">
+    <h1 class="float-left"><i class="fas fa-cog"></i> @T(P + "Settings")
+        <small><i class="fas fa-arrow-circle-left"></i> <a asp-action="Configure">@T(P + "Settings.Back")</a></small>
+    </h1>
+    <div class="float-right">
+        <button type="submit" class="btn btn-primary"><i class="far fa-save"></i> @T("Admin.Common.Save")</button>
+    </div>
+</div>
+
+<section class="content">
+<div class="container-fluid">
+    @if (Model.Saved)
+    {
+        <div class="alert alert-success"><i class="fas fa-check"></i> @T(P + "Settings.Saved")</div>
+    }
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <p class="sp-sub">@T(P + "SettingsScope")</p>
+
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="sp-card">
+                <h3><i class="fas fa-calendar-alt"></i> @T(P + "Settings.Scheduling")</h3>
+                <label class="sp-switch">
+                    <input asp-for="ScheduledScanningEnabled" />
+                    <span><b>@T(P + "ScheduledScanningEnabled")</b><span class="sp-hint d-block">@T(P + "SchedulingHint")</span></span>
+                </label>
+                <div class="form-group">
+                    <label asp-for="ScheduledScanIntervalHours">@T(P + "ScheduledScanIntervalHours")</label>
+                    <select asp-for="ScheduledScanIntervalHours" class="form-control" style="max-width:240px">
+                        <option value="1">1 (hourly)</option>
+                        <option value="6">6</option>
+                        <option value="12">12</option>
+                        <option value="24">24 (daily)</option>
+                        <option value="72">72</option>
+                        <option value="168">168 (weekly)</option>
+                        @if (!new[] { 1, 6, 12, 24, 72, 168 }.Contains(Model.ScheduledScanIntervalHours))
+                        {
+                            <option value="@Model.ScheduledScanIntervalHours">@Model.ScheduledScanIntervalHours</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="sp-card">
+                <h3><i class="fas fa-sliders-h"></i> @T(P + "Settings.Optional")</h3>
+                <label class="sp-switch">
+                    <input asp-for="CatalogChecksEnabled" />
+                    <span><b>@T(P + "CatalogChecksEnabled")</b><span class="sp-hint d-block">@T(P + "CatalogChecksEnabled.Hint")</span></span>
+                </label>
+                <label class="sp-switch">
+                    <input asp-for="NetworkChecksEnabled" />
+                    <span><b>@T(P + "NetworkChecksEnabled")</b><span class="sp-hint d-block">@T(P + "NetworkChecksEnabled.Hint")</span></span>
+                </label>
+            </div>
+
+            <div class="sp-card">
+                <h3><i class="fas fa-history"></i> @T(P + "Settings.History")</h3>
+                <div class="form-group">
+                    <label asp-for="HistoryRetentionDays">@T(P + "HistoryRetentionDays")</label>
+                    <input asp-for="HistoryRetentionDays" class="form-control" style="max-width:160px" />
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="sp-card">
+                <h3><i class="fas fa-clock"></i> @T(P + "Settings.Thresholds")</h3>
+                <div class="form-row">
+                    <div class="form-group col-sm-6"><label asp-for="TaskGraceMinutes">@T(P + "TaskGraceMinutes")</label><input asp-for="TaskGraceMinutes" class="form-control" /></div>
+                    <div class="form-group col-sm-6"><label asp-for="TaskOverdueMultiplier">@T(P + "TaskOverdueMultiplier")</label><input asp-for="TaskOverdueMultiplier" class="form-control" /></div>
+                    <div class="form-group col-sm-6"><label asp-for="EmailWarningMinutes">@T(P + "EmailWarningMinutes")</label><input asp-for="EmailWarningMinutes" class="form-control" /></div>
+                    <div class="form-group col-sm-6"><label asp-for="EmailBacklogWarningCount">@T(P + "EmailBacklogWarningCount")</label><input asp-for="EmailBacklogWarningCount" class="form-control" /></div>
+                    <div class="form-group col-sm-6"><label asp-for="MaximumRecordsPerCheck">@T(P + "MaximumRecordsPerCheck")</label><input asp-for="MaximumRecordsPerCheck" class="form-control" /></div>
+                </div>
+            </div>
+
+            <div class="sp-card">
+                <h3><i class="fas fa-database"></i> @T(P + "Settings.Database")</h3>
+                <div class="form-row">
+                    <div class="form-group col-sm-6"><label asp-for="GuestWarningCount">@T(P + "GuestWarningCount")</label><input asp-for="GuestWarningCount" class="form-control" /></div>
+                    <div class="form-group col-sm-6"><label asp-for="LogWarningCount">@T(P + "LogWarningCount")</label><input asp-for="LogWarningCount" class="form-control" /></div>
+                    <div class="form-group col-sm-6"><label asp-for="ActivityLogWarningCount">@T(P + "ActivityLogWarningCount")</label><input asp-for="ActivityLogWarningCount" class="form-control" /></div>
+                    <div class="form-group col-sm-6"><label asp-for="SentEmailWarningCount">@T(P + "SentEmailWarningCount")</label><input asp-for="SentEmailWarningCount" class="form-control" /></div>
+                    <div class="form-group col-sm-6"><label asp-for="OldCartWarningCount">@T(P + "OldCartWarningCount")</label><input asp-for="OldCartWarningCount" class="form-control" /></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="far fa-save"></i> @T("Admin.Common.Save")</button>
+    <a class="btn btn-default" asp-action="Configure">@T(P + "Settings.Back")</a>
+</div>
+</section>
+</form>
+</div>

@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    One source tree builds for nopCommerce 4.80 and 4.90. The target version is read from the host's
+    Nop.Core.csproj, so the plugin builds for whichever source tree it sits in (src/Plugins).
+    Override with -p:NopVersion=4.80 if needed.
+  -->
+  <PropertyGroup>
+    <SupportedNopVersions>4.80;4.90</SupportedNopVersions>
+    <!-- Plugin release number, shared by every nopCommerce line (gives 4.80.10 and 4.90.10).
+         Bump it on every release: resource migrations rerun only when the version changes. -->
+    <PluginRevision>10</PluginRevision>
+
+    <NopCoreProjectPath>$(MSBuildProjectDirectory)\..\..\Libraries\Nop.Core\Nop.Core.csproj</NopCoreProjectPath>
+    <NopVersion Condition="'$(NopVersion)' == '' And Exists('$(NopCoreProjectPath)')">$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(NopCoreProjectPath)')), '&lt;Version&gt;(\d+\.\d+)&lt;/Version&gt;').Groups[1].Value)</NopVersion>
+    <NopVersionSymbol>NOP_$(NopVersion.Replace('.', ''))</NopVersionSymbol>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Version>$(NopVersion).$(PluginRevision)</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <DefineConstants>$(DefineConstants);$(NopVersionSymbol)</DefineConstants>
+    <OutputPath>../../Presentation/Nop.Web/Plugins/Misc.StorePulse</OutputPath>
+    <OutDir>$(OutputPath)</OutDir>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <!-- The shared engine and the tests are separate projects inside this folder. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);StorePulse.Core/**;Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../../Presentation/Nop.Web.Framework/Nop.Web.Framework.csproj" />
+    <ProjectReference Include="StorePulse.Core/StorePulse.Core.csproj" />
+    <!-- plugin.json is a template: GeneratePluginDescriptor writes the versioned copy to the output. -->
+    <Content Include="Views/**/*.cshtml" CopyToOutputDirectory="PreserveNewest" />
+    <None Remove="plugin.json;Views/**/*.cshtml" />
+  </ItemGroup>
+
+  <Target Name="ValidateNopVersion" BeforeTargets="BeforeBuild">
+    <Error Condition="'$(NopVersion)' == ''"
+           Text="Could not detect the nopCommerce version from $(NopCoreProjectPath). Place the plugin in src/Plugins of a nopCommerce source tree or pass -p:NopVersion=4.80 (or 4.90)." />
+    <Error Condition="!$([System.String]::Copy(';$(SupportedNopVersions);').Contains(';$(NopVersion);'))"
+           Text="nopCommerce $(NopVersion) is not supported by StorePulse. Supported versions: $(SupportedNopVersions)." />
+    <Message Importance="high" Text="StorePulse $(Version) for nopCommerce $(NopVersion)" />
+  </Target>
+
+  <Target Name="GeneratePluginDescriptor" AfterTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup>
+      <PluginDescriptorContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/plugin.json').Replace('{PluginVersion}', '$(Version)').Replace('{NopVersion}', '$(NopVersion)').TrimEnd())</PluginDescriptorContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(OutDir)plugin.json" Lines="$([MSBuild]::Escape('$(PluginDescriptorContent)'))" Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="utf-8" />
+  </Target>
+
+  <Target Name="NopTarget" AfterTargets="Build">
+    <MSBuild Projects="../../Build/ClearPluginAssemblies.proj" Properties="PluginPath=$(MSBuildProjectDirectory)/$(OutDir)" Targets="NopClear" />
+  </Target>
+</Project>

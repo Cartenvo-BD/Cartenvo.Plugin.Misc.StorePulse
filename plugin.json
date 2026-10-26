@@ -1,0 +1,13 @@
+{
+  "Group": "Misc",
+  "FriendlyName": "StorePulse - Store Health & Diagnostics",
+  "SystemName": "Misc.StorePulse",
+  "Version": "{PluginVersion}",
+  "SupportedVersions": [ "{NopVersion}" ],
+  "Author": "Cartenvo",
+  "DisplayOrder": 1,
+  "FileName": "Cartenvo.Plugin.Misc.StorePulse.dll",
+  "Description": "Free read-only store health check: scheduled tasks, email queue, errors, database bloat, security basics, plugin compatibility, upgrade readiness and catalog quality."
+}
+
+

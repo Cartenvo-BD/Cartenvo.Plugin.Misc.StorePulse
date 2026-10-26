@@ -1,0 +1,450 @@
+@model Cartenvo.Plugin.Misc.StorePulse.Models.DashboardModel
+@using Cartenvo.Plugin.Misc.StorePulse.Infrastructure
+@using Cartenvo.Plugin.Misc.StorePulse.Models
+@using global::StorePulse.Core
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = T("Plugins.Misc.StorePulse.Title").Text;
+    NopHtml.SetActiveMenuItemSystemName("Misc.StorePulse");
+    const string P = "Plugins.Misc.StorePulse.";
+    var hasScan = Model.SelectedScanId != 0;
+    var critical = Model.Count(HealthStatus.Critical);
+    var warnings = Model.Count(HealthStatus.Warning);
+    var healthy = Model.Count(HealthStatus.Healthy);
+    var unknown = Model.Count(HealthStatus.Unknown);
+    var score = Model.Score.Score;
+    var tone = score == null ? "muted" : critical > 0 || score < 60 ? "critical" : warnings > 0 || score < 85 ? "warning" : "healthy";
+    var verdict = score == null ? "Verdict.Unknown" : critical > 0 ? "Verdict.Critical" : warnings > 0 ? "Verdict.Attention" : "Verdict.Good";
+    var ringColor = tone switch { "critical" => "#dc2626", "warning" => "#d97706", "healthy" => "#16a34a", _ => "#94a3b8" };
+    const double circumference = 2 * Math.PI * 58;
+    var dash = score == null ? 0 : (double)score.Value / 100 * circumference;
+    var problems = DashboardModel.Prioritize(Model.Findings).ToList();
+    var operationalProblems = problems.Where(f => f.Category != HealthCategory.Catalog).ToList();
+}
+@functions {
+    string Ago(DateTime utc)
+    {
+        var span = DateTime.UtcNow - utc;
+        if (span.TotalMinutes < 1) return "just now";
+        if (span.TotalHours < 1) return $"{(int)span.TotalMinutes} min ago";
+        if (span.TotalDays < 1) return $"{(int)span.TotalHours} h ago";
+        return $"{(int)span.TotalDays} days ago";
+    }
+    string Admin(string checkId)
+    {
+        var path = StorePulseLinks.AdminPath(checkId);
+        return path == null ? null : Url.Content("~/" + path);
+    }
+}
+<partial name="~/Plugins/Misc.StorePulse/Views/_StorePulseStyles.cshtml" />
+
+<div class="sp">
+<div class="content-header clearfix">
+    <h1 class="float-left">
+        <i class="fas fa-heartbeat" style="color:#dc2626"></i> @T(P + "Title")
+        <small class="sp-sub d-none d-md-inline">&nbsp;@T(P + "Tagline")</small>
+    </h1>
+    <div class="float-right d-flex flex-wrap" style="gap:6px">
+        @if (Model.CanRun)
+        {
+            <form asp-controller="StorePulse" asp-action="Run" method="post" class="d-inline" data-sp-run>
+                <button type="submit" class="btn btn-primary">
+                    <span class="sp-idle"><i class="fas fa-play"></i> @T(hasScan ? P + "RunAgain" : P + "Run")</span>
+                    <span class="sp-spin"><i class="fas fa-spinner fa-spin"></i> @T(P + "Running")</span>
+                </button>
+            </form>
+        }
+        @if (hasScan && Model.CanExport)
+        {
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-download"></i> @T(P + "Export")
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item" asp-action="Export" asp-route-scanId="@Model.SelectedScanId" asp-route-format="html"><i class="far fa-file-alt"></i> @T(P + "Export.Html")</a>
+                    <a class="dropdown-item" asp-action="Export" asp-route-scanId="@Model.SelectedScanId" asp-route-format="json"><i class="far fa-file-code"></i> @T(P + "Export.Json")</a>
+                </div>
+            </div>
+        }
+        <a class="btn btn-default" asp-action="Upgrade"><i class="fas fa-level-up-alt"></i> @T(P + "Tab.Upgrade")</a>
+        @if (Model.CanManage)
+        {
+            <a class="btn btn-default" asp-action="Settings" title="@T(P + "Settings")"><i class="fas fa-cog"></i><span class="d-none d-lg-inline"> @T(P + "Settings")</span></a>
+        }
+    </div>
+</div>
+
+<section class="content">
+<div class="container-fluid">
+    @if (Model.Busy)
+    {
+        <div class="alert alert-info" role="status"><i class="fas fa-info-circle"></i> @T(P + "Busy")</div>
+    }
+    @if (hasScan && !Model.IsLatest)
+    {
+        <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap" style="gap:8px">
+            <span><i class="fas fa-history"></i> @T(P + "ViewingOld")</span>
+            <a class="btn btn-sm btn-light" asp-action="Configure">@T(P + "ViewLatest")</a>
+        </div>
+    }
+
+    @if (!hasScan)
+    {
+        <div class="sp-card sp-empty">
+            <div class="sp-empty-icon"><i class="fas fa-stethoscope"></i></div>
+            <h2>@T(P + "NoScan")</h2>
+            <p>@T(P + "NoScan.Hint")</p>
+            @if (Model.CanRun)
+            {
+                <form asp-controller="StorePulse" asp-action="Run" method="post" data-sp-run>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <span class="sp-idle"><i class="fas fa-play"></i> @T(P + "Run")</span>
+                        <span class="sp-spin"><i class="fas fa-spinner fa-spin"></i> @T(P + "Running")</span>
+                    </button>
+                </form>
+            }
+            <p class="sp-sub mt-3"><i class="fas fa-lock"></i> @T(P + "Privacy")</p>
+        </div>
+    }
+    else
+    {
+        <!-- Score overview -->
+        <div class="sp-card">
+            <div class="sp-hero">
+                <div class="sp-ring" role="img" aria-label="@T(P + "Score"): @(score?.ToString("0") ?? "—") / 100">
+                    <svg width="140" height="140" viewBox="0 0 140 140">
+                        <circle cx="70" cy="70" r="58" fill="none" stroke="#eef2f7" stroke-width="12" />
+                        <circle cx="70" cy="70" r="58" fill="none" stroke="@ringColor" stroke-width="12" stroke-linecap="round"
+                                stroke-dasharray="@dash.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) @circumference.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" />
+                    </svg>
+                    <div class="sp-ring-value"><b style="color:@ringColor">@(score?.ToString("0") ?? "—")</b><span>@T(P + "Score")</span></div>
+                </div>
+                <div class="sp-verdict">
+                    <h2 class="@(tone)-text">@T(P + verdict)</h2>
+                    <div class="sp-sub">
+                        <i class="far fa-clock"></i> @T(P + "LastScan"): @(Model.CompletedOnUtc.HasValue ? Ago(Model.CompletedOnUtc.Value) : "—")
+                        · nopCommerce @Model.NopVersion
+                    </div>
+                    <div class="sp-sub mt-2" title="@T(P + "Coverage.Hint")">@T(P + "Coverage"): @Model.Score.CoveragePercent.ToString("0")%</div>
+                    <div class="sp-bar"><i style="width:@Model.Score.CoveragePercent.ToString("0", System.Globalization.CultureInfo.InvariantCulture)%"></i></div>
+                </div>
+                <div class="sp-tiles">
+                    <button type="button" class="sp-tile critical" data-sp-filter="Critical"><b>@critical</b><span><i class="fas fa-times-circle"></i> @T(P + "Critical")</span></button>
+                    <button type="button" class="sp-tile warning" data-sp-filter="Warning"><b>@warnings</b><span><i class="fas fa-exclamation-triangle"></i> @T(P + "Warnings")</span></button>
+                    <button type="button" class="sp-tile healthy" data-sp-filter="Healthy"><b>@healthy</b><span><i class="fas fa-check-circle"></i> @T(P + "Healthy")</span></button>
+                    <button type="button" class="sp-tile muted" data-sp-filter="Unknown"><b>@unknown</b><span><i class="fas fa-question-circle"></i> @T(P + "NotEvaluated")</span></button>
+                    @if (Model.CatalogScore.HasValue)
+                    {
+                        <button type="button" class="sp-tile brand" data-sp-filter="Catalog"><b>@Model.CatalogScore.Value.ToString("0")</b><span><i class="fas fa-tags"></i> @T(P + "CatalogScore")</span></button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Root cause hints -->
+        @if (Model.Has("EMAIL-004", HealthStatus.Critical))
+        {
+            <div class="sp-callout critical"><i class="fas fa-link"></i><div><b>@T(P + "EMAIL-004.Title")</b><br />@T(P + "Correlation.Email")</div></div>
+        }
+        @if (Model.Has("DB-001", HealthStatus.Warning) && (Model.Has("DB-003", HealthStatus.Warning) || Model.Has("DB-002", HealthStatus.Warning)))
+        {
+            <div class="sp-callout warning"><i class="fas fa-link"></i><div><b>@T(P + "DB-001.Title")</b><br />@T(P + "Correlation.Guests")</div></div>
+        }
+        @if (Model.Has("PLUGIN-004", HealthStatus.Warning) && Model.Findings.Any(f => f.Category == HealthCategory.ApplicationErrors && ScanComparison.IsProblem(f.Status)))
+        {
+            <div class="sp-callout warning"><i class="fas fa-link"></i><div><b>@T(P + "PLUGIN-004.Title")</b><br />@T(P + "Correlation.Plugins")</div></div>
+        }
+
+        <div class="row">
+            <!-- Fix these first -->
+            <div class="col-lg-7">
+                <div class="sp-card">
+                    <h3><i class="fas fa-list-ol"></i> @T(P + "FixFirst")</h3>
+                    @if (!operationalProblems.Any())
+                    {
+                        <p class="healthy-text mb-0"><i class="fas fa-check-circle"></i> @T(P + "FixFirst.Empty")</p>
+                    }
+                    @foreach (var finding in operationalProblems.Take(5))
+                    {
+                        var t = DashboardModel.Tone(finding.Status);
+                        var adminUrl = Admin(finding.CheckId);
+                        <div class="sp-fix">
+                            <i class="sp-fix-icon @DashboardModel.StatusIcon(finding.Status) @(t)-text"></i>
+                            <div>
+                                <b>@T(finding.TitleResourceKey)</b>
+                                <p>@T(P + finding.CheckId + ".Action")</p>
+                                <div class="sp-actions">
+                                    @if (adminUrl != null)
+                                    {
+                                        <a class="btn btn-sm btn-outline-primary" href="@adminUrl"><i class="fas fa-external-link-alt"></i> @T(P + "OpenPage")</a>
+                                    }
+                                    <a class="btn btn-sm btn-link" href="@StorePulseLinks.Help(finding.CheckId)" target="_blank" rel="noopener">@T(P + "LearnMore")</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (operationalProblems.Count > 5)
+                    {
+                        <button type="button" class="btn btn-sm btn-link px-0" data-sp-filter="Problems">+@(operationalProblems.Count - 5) more →</button>
+                    }
+                </div>
+            </div>
+            <!-- What changed + trend -->
+            <div class="col-lg-5">
+                <div class="sp-card">
+                    <h3><i class="fas fa-exchange-alt"></i> @T(P + "Changes")</h3>
+                    @if (Model.Changes == null)
+                    {
+                        <p class="sp-sub mb-0">@T(P + "Changes.First")</p>
+                    }
+                    else if (!Model.Changes.NewProblems.Any() && !Model.Changes.Resolved.Any())
+                    {
+                        <p class="sp-sub mb-0">@T(P + "Changes.None")</p>
+                    }
+                    else
+                    {
+                        @if (Model.Changes.NewProblems.Any())
+                        {
+                            <div class="sp-sub mb-1">@T(P + "Changes.New") (@Model.Changes.NewProblems.Count)</div>
+                            <ul class="sp-change">
+                                @foreach (var item in Model.Changes.NewProblems.Take(6))
+                                {
+                                    <li><i class="fas fa-arrow-down critical-text"></i> @T(item.TitleResourceKey)</li>
+                                }
+                            </ul>
+                        }
+                        @if (Model.Changes.Resolved.Any())
+                        {
+                            <div class="sp-sub mb-1">@T(P + "Changes.Resolved") (@Model.Changes.Resolved.Count)</div>
+                            <ul class="sp-change">
+                                @foreach (var item in Model.Changes.Resolved.Take(6))
+                                {
+                                    <li><i class="fas fa-check healthy-text"></i> @T(item.TitleResourceKey)</li>
+                                }
+                            </ul>
+                        }
+                    }
+                    @{ var points = Model.Trend.Where(p => p.Score.HasValue).ToList(); }
+                    @if (points.Count >= 2)
+                    {
+                        var w = 300.0; var h = 60.0;
+                        var step = w / (points.Count - 1);
+                        var coords = string.Join(" ", points.Select((p, i) => $"{(i * step).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)},{(h - (double)p.Score.Value / 100 * h + 4).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)}"));
+                        <div class="sp-sub mt-3">@T(P + "Trend")</div>
+                        <svg class="sp-trend" viewBox="-4 0 308 68" preserveAspectRatio="none" role="img" aria-label="@T(P + "Trend")">
+                            <line x1="0" y1="@((h * 0.15 + 4).ToString(System.Globalization.CultureInfo.InvariantCulture))" x2="300" y2="@((h * 0.15 + 4).ToString(System.Globalization.CultureInfo.InvariantCulture))" stroke="#dcfce7" stroke-dasharray="4 4" />
+                            <polyline points="@coords" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+                            @foreach (var (p, i) in points.Select((p, i) => (p, i)))
+                            {
+                                <circle cx="@((i * step).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" cy="@((h - (double)p.Score.Value / 100 * h + 4).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" r="3" fill="@(p.ScanId == Model.SelectedScanId ? "#1d4ed8" : "#93c5fd")"><title>@p.CompletedOnUtc.ToString("yyyy-MM-dd HH:mm") UTC · @p.Score?.ToString("0")</title></circle>
+                            }
+                        </svg>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#sp-checks" role="tab"><i class="fas fa-clipboard-check"></i> @T(P + "Tab.Checks") <span class="badge badge-light">@Model.Findings.Count</span></a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#sp-history" role="tab"><i class="fas fa-history"></i> @T(P + "Tab.History")</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#sp-plugins" role="tab"><i class="fas fa-puzzle-piece"></i> @T(P + "Tab.Plugins")</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="sp-checks" role="tabpanel">
+                <div class="sp-toolbar">
+                    <input type="search" class="form-control form-control-sm" placeholder="@T(P + "Search")" data-sp-search aria-label="@T(P + "Search")" />
+                    <div class="sp-seg" role="group">
+                        <button type="button" data-sp-filter="Problems" class="@(problems.Any() ? "active" : "")">@T(P + "Filter.Problems")</button>
+                        <button type="button" data-sp-filter="All" class="@(problems.Any() ? "" : "active")">@T(P + "Filter.All")</button>
+                    </div>
+                    <span class="sp-sub" data-sp-empty-note style="display:none">@T(P + "FixFirst.Empty")</span>
+                </div>
+                @foreach (var category in DashboardModel.CategoryOrder)
+                {
+                    var items = Model.Findings.Where(f => f.Category == category)
+                        .OrderBy(f => f.Status switch { HealthStatus.Critical => 0, HealthStatus.Warning => 1, HealthStatus.Unknown => 2, HealthStatus.Healthy => 3, _ => 4 }).ToList();
+                    if (!items.Any()) { continue; }
+                    var bad = items.Count(f => f.Status == HealthStatus.Critical);
+                    var warn = items.Count(f => f.Status == HealthStatus.Warning);
+                    var ok = items.Count(f => f.Status == HealthStatus.Healthy);
+                    <details class="sp-group" data-sp-group data-category="@category" @(bad + warn > 0 ? "open" : "")>
+                        <summary>
+                            <i class="@DashboardModel.Icon(category)"></i> @T(P + "Category." + category)
+                            <span class="sp-count">
+                                @if (bad > 0) { <span class="sp-pill critical">@bad</span> }
+                                @if (warn > 0) { <span class="sp-pill warning">@warn</span> }
+                                <span class="sp-pill healthy" title="@T(P + "Healthy")"><i class="fas fa-check"></i> @ok / @items.Count</span>
+                            </span>
+                        </summary>
+                        @foreach (var finding in items)
+                        {
+                            var t = DashboardModel.Tone(finding.Status);
+                            var adminUrl = Admin(finding.CheckId);
+                            <details class="sp-item" data-sp-item data-status="@finding.Status" data-category="@finding.Category"
+                                     data-text="@($"{finding.CheckId} {T(finding.TitleResourceKey)}".ToLowerInvariant())">
+                                <summary>
+                                    <i class="@DashboardModel.StatusIcon(finding.Status) @(t)-text"></i>
+                                    <span class="sp-title">@T(finding.TitleResourceKey) <span class="sp-id">@finding.CheckId</span></span>
+                                    <span class="d-none d-md-inline sp-sub">@T(P + "Scope." + finding.Scope)</span>
+                                    <span class="sp-pill @t">@T(finding.SummaryResourceKey)</span>
+                                </summary>
+                                <div class="sp-detail">
+                                    <div><h4>@T(P + "Why")</h4><p>@T(P + finding.CheckId + ".Why")</p></div>
+                                    @if (finding.Metrics.Any())
+                                    {
+                                        <div>
+                                            <h4>@T(P + "Evidence")</h4>
+                                            <div class="sp-chips">
+                                                @foreach (var metric in finding.Metrics.Where(item => !StorePulse.Core.MetricFlags.IsFlag(item.Key)))
+                                                {
+                                                    <span class="sp-chip">@T(P + "Metric." + metric.Key): <b>@StorePulse.Core.MetricFlags.Format(finding.Metrics, metric.Value, "#,0.##")</b></span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                    <div><h4>@T(P + "WhatToDo")</h4><p>@T(finding.RecommendationResourceKey)</p></div>
+                                    <div class="sp-actions">
+                                        @if (adminUrl != null)
+                                        {
+                                            <a class="btn btn-sm btn-outline-primary" href="@adminUrl"><i class="fas fa-external-link-alt"></i> @T(P + "OpenPage")</a>
+                                        }
+                                        <a class="btn btn-sm btn-link" href="@StorePulseLinks.Help(finding.CheckId)" target="_blank" rel="noopener">@T(P + "LearnMore") <i class="fas fa-arrow-right"></i></a>
+                                    </div>
+                                    @if (finding.CheckId == "PLUGIN-006")
+                                    {
+                                        <div>
+                                            <h4>@T(P + "KnownIssues", Model.NopVersion)</h4>
+                                            @if (!Model.KnownIssues.Any())
+                                            {
+                                                <p class="healthy-text">@T(P + "KnownIssues.None", Model.NopVersion)</p>
+                                            }
+                                            @foreach (var issue in Model.KnownIssues)
+                                            {
+                                                <p><a href="@issue.SourceUrl" target="_blank" rel="noopener">@issue.Title</a> — <span class="sp-pill warning">@T(P + "KnownIssues.FixedIn", issue.FixedIn)</span></p>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </details>
+                        }
+                    </details>
+                }
+                <p class="sp-sub"><i class="fas fa-info-circle"></i> @T(P + "Limits")</p>
+            </div>
+
+            <div class="tab-pane fade" id="sp-history" role="tabpanel">
+                <div class="sp-card">
+                    <h3><i class="fas fa-history"></i> @T(P + "History")</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>@T(P + "History.Date")</th><th>@T(P + "History.Score")</th><th>@T(P + "History.Problems")</th><th></th></tr></thead>
+                            <tbody>
+                            @foreach (var point in Model.Trend.Reverse())
+                            {
+                                <tr class="@(point.ScanId == Model.SelectedScanId ? "table-active" : "")">
+                                    <td>@point.CompletedOnUtc.ToString("yyyy-MM-dd HH:mm") <span class="sp-sub">· @Ago(point.CompletedOnUtc)</span></td>
+                                    <td><b>@(point.Score?.ToString("0") ?? "—")</b></td>
+                                    <td>@if (point.Problems > 0) { <span class="sp-pill warning">@point.Problems</span> } else { <span class="sp-pill healthy">0</span> }</td>
+                                    <td class="text-right"><a class="btn btn-sm btn-default" asp-action="Configure" asp-route-scanId="@point.ScanId">@T(P + "History.View")</a></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (Model.CanManage && Model.History.Count > 0)
+                    {
+                        <form asp-action="ClearHistory" method="post" class="mt-3" data-sp-confirm="@T(P + "ClearConfirm")">
+                            <p class="sp-sub">@T(P + "ClearWarning")</p>
+                            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="far fa-trash-alt"></i> @T(P + "ClearHistory")</button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="sp-plugins" role="tabpanel">
+                <div class="sp-card">
+                    <h3><i class="fas fa-puzzle-piece"></i> @T(P + "Inventory")
+                        <a class="btn btn-sm btn-outline-primary ml-auto" asp-action="Upgrade"><i class="fas fa-level-up-alt"></i> @T(P + "Tab.Upgrade")</a></h3>
+                    <p class="sp-sub">@T(P + "InventoryHint")</p>
+                    @if (Model.InventoryTruncated) { <p class="sp-sub">@T(P + "InventoryTruncated")</p> }
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead><tr><th>@T(P + "PluginName")</th><th>@T(P + "PluginVersion")</th><th>@T(P + "DeclaresSupport")</th></tr></thead>
+                            <tbody>
+                            @foreach (var plugin in Model.Inventory.OrderBy(p => p.DeclaresSupport))
+                            {
+                                <tr>
+                                    <td>@plugin.SystemName</td><td>@plugin.Version</td>
+                                    <td>@if (plugin.DeclaresSupport) { <span class="sp-pill healthy"><i class="fas fa-check"></i> @T("Admin.Common.Yes")</span> } else { <span class="sp-pill warning"><i class="fas fa-exclamation-triangle"></i> @T("Admin.Common.No")</span> }</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <p class="sp-foot">
+        <i class="fas fa-lock"></i> @T(P + "Privacy") · @T(P + "Retention")<br />
+        StorePulse by <a href="@StorePulseLinks.Website" target="_blank" rel="noopener">Cartenvo</a>
+    </p>
+</div>
+</section>
+</div>
+
+<script>
+(function () {
+    var root = document.querySelector('.sp');
+    if (!root) return;
+    root.querySelectorAll('[data-sp-run]').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            var button = form.querySelector('button');
+            button.classList.add('sp-busy'); button.disabled = true;
+            form.classList.add('sp-busy');
+        });
+    });
+    root.querySelectorAll('[data-sp-confirm]').forEach(function (form) {
+        form.addEventListener('submit', function (e) { if (!confirm(form.getAttribute('data-sp-confirm'))) e.preventDefault(); });
+    });
+    var mode = root.querySelector('.sp-seg .active') ? root.querySelector('.sp-seg .active').getAttribute('data-sp-filter') : 'All';
+    var search = root.querySelector('[data-sp-search]');
+    function apply() {
+        var text = (search && search.value || '').trim().toLowerCase();
+        var anyVisible = false;
+        root.querySelectorAll('[data-sp-group]').forEach(function (group) {
+            var visible = 0;
+            group.querySelectorAll('[data-sp-item]').forEach(function (item) {
+                var status = item.getAttribute('data-status'), category = item.getAttribute('data-category');
+                var ok = mode === 'All' ||
+                    (mode === 'Problems' && (status === 'Critical' || status === 'Warning')) ||
+                    (mode === 'Catalog' && category === 'Catalog') ||
+                    // Status tiles count operational checks only, so match that here.
+                    (status === mode && category !== 'Catalog');
+                if (text) ok = item.getAttribute('data-text').indexOf(text) >= 0;
+                item.classList.toggle('sp-hidden', !ok);
+                if (ok) visible++;
+            });
+            group.classList.toggle('sp-hidden', visible === 0);
+            if (visible > 0 && (text || mode !== 'All')) group.open = true;
+            if (visible > 0) anyVisible = true;
+        });
+        var note = root.querySelector('[data-sp-empty-note]');
+        if (note) note.style.display = anyVisible ? 'none' : '';
+        root.querySelectorAll('.sp-seg button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-sp-filter') === mode); });
+    }
+    root.querySelectorAll('[data-sp-filter]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            mode = button.getAttribute('data-sp-filter');
+            if (search) search.value = '';
+            if (window.jQuery) jQuery('a[href="#sp-checks"]').tab('show');
+            apply();
+            if (!button.closest('.sp-seg')) document.getElementById('sp-checks').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+    if (search) search.addEventListener('input', apply);
+    apply();
+})();
+</script>

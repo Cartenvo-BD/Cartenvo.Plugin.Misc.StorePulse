@@ -1,0 +1,39 @@
+@model Cartenvo.Plugin.Misc.StorePulse.Models.DashboardCardModel
+@using Cartenvo.Plugin.Misc.StorePulse.Models
+@{
+    const string P = "Plugins.Misc.StorePulse.";
+    var score = Model.Score.Score;
+    var problems = Model.Critical.Count + Model.Warnings;
+    var tone = !Model.HasScan || score == null ? "muted" : Model.Critical.Count > 0 || score < 60 ? "critical" : Model.Warnings > 0 || score < 85 ? "warning" : "healthy";
+    var color = tone switch { "critical" => "#dc2626", "warning" => "#d97706", "healthy" => "#16a34a", _ => "#94a3b8" };
+}
+<partial name="~/Plugins/Misc.StorePulse/Views/_StorePulseStyles.cshtml" />
+<div class="row sp">
+    <div class="col-md-12">
+        <div class="sp-card d-flex flex-wrap align-items-center" style="gap:20px;border-left:5px solid @color">
+            <div style="font-size:2.2rem;font-weight:700;color:@color;min-width:64px;text-align:center">
+                @(Model.HasScan && score != null ? score.Value.ToString("0") : "—")
+            </div>
+            <div style="flex:1 1 260px;min-width:0">
+                <div style="font-weight:600"><i class="fas fa-heartbeat" style="color:#dc2626"></i> @T(P + "Widget.Title") · StorePulse</div>
+                @if (!Model.HasScan)
+                {
+                    <div class="sp-sub">@T(P + "Widget.NoScan")</div>
+                }
+                else
+                {
+                    <div class="sp-sub">
+                        @if (problems == 0) { <span class="healthy-text"><i class="fas fa-check-circle"></i> @T(P + "Verdict.Good")</span> }
+                        else { <span class="@(tone)-text">@T(P + "Widget.Problems", problems)</span> }
+                        · @T(P + "LastScan"): @Model.CompletedOnUtc?.ToString("yyyy-MM-dd HH:mm") UTC
+                    </div>
+                    @foreach (var finding in Model.TopProblems)
+                    {
+                        <div style="font-size:.9rem"><i class="@DashboardModel.StatusIcon(finding.Status) @(DashboardModel.Tone(finding.Status))-text"></i> @T(finding.TitleResourceKey)</div>
+                    }
+                }
+            </div>
+            <a class="btn btn-primary" href="@Url.Content("~/Admin/StorePulse/Configure")">@T(P + "Widget.Open") <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</div>

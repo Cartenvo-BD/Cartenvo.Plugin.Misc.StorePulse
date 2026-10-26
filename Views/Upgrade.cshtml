@@ -1,0 +1,68 @@
+@model Cartenvo.Plugin.Misc.StorePulse.Models.UpgradeModel
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = T("Plugins.Misc.StorePulse.Upgrade.Title").Text;
+    NopHtml.SetActiveMenuItemSystemName("Misc.StorePulse");
+    const string P = "Plugins.Misc.StorePulse.";
+    var total = Model.Plugins.Count;
+    var percent = total == 0 ? 100 : Model.ReadyCount * 100 / total;
+    var tone = percent == 100 ? "healthy" : percent >= 70 ? "warning" : "critical";
+}
+<partial name="~/Plugins/Misc.StorePulse/Views/_StorePulseStyles.cshtml" />
+
+<div class="sp">
+<div class="content-header clearfix">
+    <h1 class="float-left"><i class="fas fa-level-up-alt"></i> @T(P + "Upgrade.Title")
+        <small><i class="fas fa-arrow-circle-left"></i> <a asp-action="Configure">@T(P + "Settings.Back")</a></small>
+    </h1>
+</div>
+<section class="content">
+<div class="container-fluid">
+    <div class="sp-card">
+        <div class="sp-hero">
+            <div class="sp-verdict">
+                <div class="sp-sub">nopCommerce @Model.CurrentVersion → @Model.TargetVersion</div>
+                <h2 class="@(tone)-text">@T(P + "Upgrade.Summary", Model.ReadyCount, total, Model.TargetVersion)</h2>
+                <div class="sp-sub">@T(P + "Upgrade.SummaryDetail", Model.Plugins.Count(p => p.Ready), Model.Plugins.Count(p => p.Bundled && !p.Ready), Model.Plugins.Count(p => !p.Ready && !p.Bundled))</div>
+                <div class="sp-bar"><i style="width:@(percent)%"></i></div>
+                <p class="sp-sub mt-2 mb-0">@T(P + "Upgrade.Hint")</p>
+            </div>
+            <form method="get" asp-action="Upgrade" class="form-inline" style="gap:8px">
+                <label for="target" class="mr-2">@T(P + "Upgrade.Target")</label>
+                <select id="target" name="target" class="form-control" onchange="this.form.submit()">
+                    @foreach (var option in Model.TargetOptions)
+                    {
+                        <option value="@option" selected="@(option == Model.TargetVersion)">@option</option>
+                    }
+                </select>
+                <noscript><button class="btn btn-default" type="submit">OK</button></noscript>
+            </form>
+        </div>
+    </div>
+
+    <div class="sp-card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>@T(P + "Upgrade.Status")</th><th>@T(P + "PluginName")</th><th>@T(P + "PluginVersion")</th><th>@T(P + "Upgrade.Author")</th><th>@T(P + "Upgrade.Declared")</th></tr></thead>
+                <tbody>
+                @foreach (var plugin in Model.Plugins)
+                {
+                    <tr>
+                        <td>
+                            @if (plugin.Ready) { <span class="sp-pill healthy"><i class="fas fa-check"></i> @T(P + "Upgrade.Ready")</span> }
+                            else if (plugin.Bundled) { <span class="sp-pill muted"><i class="fas fa-box"></i> @T(P + "Upgrade.Bundled")</span> }
+                            else { <span class="sp-pill warning"><i class="fas fa-exclamation-triangle"></i> @T(P + "Upgrade.NotReady")</span> }
+                        </td>
+                        <td><b>@plugin.FriendlyName</b><div class="sp-sub">@plugin.SystemName</div></td>
+                        <td>@plugin.Version</td>
+                        <td>@plugin.Author</td>
+                        <td class="sp-sub">@plugin.DeclaredVersions</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</section>
+</div>
