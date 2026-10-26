@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- StorePulse logo source. logo.png (120 x 120, what nopCommerce shows) is rendered from this file. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f43f5e"/>
+      <stop offset="1" stop-color="#b91c1c"/>
+    </linearGradient>
+    <path id="heart" d="M256 412C256 412 96 322 96 204C96 146 140 108 192 108C222 108 245 124 256 146C267 124 290 108 320 108C372 108 416 146 416 204C416 322 256 412 256 412Z"/>
+    <clipPath id="inHeart"><use href="#heart"/></clipPath>
+    <path id="pulse" d="M40 262H170L200 206L240 318L278 176L310 262H472" fill="none" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  </defs>
+  <rect x="8" y="8" width="496" height="496" rx="116" fill="url(#bg)"/>
+  <use href="#pulse" stroke="#ffffff"/>
+  <use href="#heart" fill="#ffffff"/>
+  <use href="#pulse" stroke="#dc2626" clip-path="url(#inHeart)"/>
+</svg>

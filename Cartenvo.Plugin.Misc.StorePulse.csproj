@@ -31,8 +31,9 @@
     <ProjectReference Include="../../Presentation/Nop.Web.Framework/Nop.Web.Framework.csproj" />
     <ProjectReference Include="StorePulse.Core/StorePulse.Core.csproj" />
     <!-- plugin.json is a template: GeneratePluginDescriptor writes the versioned copy to the output. -->
-    <Content Include="Views/**/*.cshtml" CopyToOutputDirectory="PreserveNewest" />
-    <None Remove="plugin.json;Views/**/*.cshtml" />
+    <Content Include="Views/**/*.cshtml;logo.png" CopyToOutputDirectory="PreserveNewest" />
+    <!-- logo.svg is the source for logo.png and isn't shipped. -->
+    <None Remove="plugin.json;Views/**/*.cshtml;logo.png;logo.svg" />
   </ItemGroup>
 
   <Target Name="ValidateNopVersion" BeforeTargets="BeforeBuild">

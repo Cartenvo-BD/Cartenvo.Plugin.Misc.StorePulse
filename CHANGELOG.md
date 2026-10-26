@@ -7,6 +7,7 @@ Versions are `<nopCommerce version>.<release>`, so release 10 is `4.80.10` on no
 - **Help popup.** "Learn more" on each finding opens a popup inside the plugin: what the check looks at, why it matters, common causes, steps to fix it and when it's safe to ignore. The texts are locale resources, so stores can translate them.
 - **Full guides on cartenvo.com.** The popup links to a guide for the check at `cartenvo.com/plugins/storepulse/guides/`. Links carry `utm_source=storepulse` and the check id, nothing about the store. Set `StorePulseLinks.GuidesPublished` to false to hide them.
 - The HTML report links each problem to its guide.
+- Plugin logo (`logo.png`, 120 × 120) shown in Configuration → Local plugins. `logo.svg` is its source.
 - Corrected the advice for emails linked to a deleted account: queued emails can't be moved to another account, so delete them and trigger them again.
 
 ## 10
