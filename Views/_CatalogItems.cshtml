@@ -1,0 +1,57 @@
+@model Cartenvo.Plugin.Misc.StorePulse.Services.CatalogItemList
+@using Cartenvo.Plugin.Misc.StorePulse.Services
+@{
+    Layout = null;
+    const string P = "Plugins.Misc.StorePulse.";
+}
+@functions {
+    string EditUrl(CatalogItem item) => item.Kind switch
+    {
+        CatalogItemKind.Product => Url.Content($"~/Admin/Product/Edit/{item.Id}"),
+        CatalogItemKind.Category => Url.Content($"~/Admin/Category/Edit/{item.Id}"),
+        CatalogItemKind.Manufacturer => Url.Content($"~/Admin/Manufacturer/Edit/{item.Id}"),
+        CatalogItemKind.Review => Url.Content($"~/Admin/ProductReview/Edit/{item.Id}"),
+        _ => null
+    };
+}
+@if (Model == null)
+{
+    <p class="sp-items-note warning-text">@T(P + "Items.Error")</p>
+}
+else if (!Model.Items.Any())
+{
+    <p class="sp-items-note">@T(P + "Items.None")</p>
+}
+else
+{
+    <div class="sp-items">
+        <table class="table table-sm">
+            <thead>
+                <tr><th>@T(P + "Items.Name")</th><th class="d-none d-sm-table-cell">@T(P + "Items.Detail")</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    var edit = EditUrl(item);
+                    <tr>
+                        <td>
+                            <span class="sp-id">@T(P + "Items.Kind." + item.Kind) @item.Id</span>
+                            @(string.IsNullOrWhiteSpace(item.Name) ? "—" : item.Name)
+                        </td>
+                        <td class="d-none d-sm-table-cell">@item.Detail</td>
+                        <td class="text-right">
+                            @if (edit != null)
+                            {
+                                <a href="@edit" target="_blank" rel="noopener">@T(P + "Items.Edit") <i class="fas fa-external-link-alt"></i></a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="sp-items-note">
+        @if (Model.More) { @T(P + "Items.More", CatalogAudit.ListLimit) <text> · </text> }
+        @T(P + "Items.Live")
+    </p>
+}

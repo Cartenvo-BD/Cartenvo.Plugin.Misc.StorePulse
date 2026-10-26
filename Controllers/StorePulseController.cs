@@ -20,7 +20,7 @@ namespace Cartenvo.Plugin.Misc.StorePulse.Controllers;
 public class StorePulseController(IStoreContext storeContext, ScanHistory history,
     StorePulseScanner scanner, IPermissionService permissions, ISettingService settingService,
     ILocalizationService localization, IPluginService pluginService, StorePulseSchedule schedule,
-    IWebHelper webHelper) : BasePluginController
+    IWebHelper webHelper, CatalogAudit catalog, Nop.Services.Logging.ILogger logger) : BasePluginController
 {
     private const string BundledAuthor = "nopCommerce team";
 
@@ -116,6 +116,7 @@ public class StorePulseController(IStoreContext storeContext, ScanHistory histor
             GuestWarningCount = s.GuestWarningCount, LogWarningCount = s.LogWarningCount,
             ActivityLogWarningCount = s.ActivityLogWarningCount, SentEmailWarningCount = s.SentEmailWarningCount,
             OldCartWarningCount = s.OldCartWarningCount, CatalogChecksEnabled = s.CatalogChecksEnabled,
+            EnabledCatalogChecks = CatalogAudit.CheckIds.Except(CatalogAudit.ParseDisabled(s.DisabledCatalogChecks)).ToList(),
             NetworkChecksEnabled = s.NetworkChecksEnabled, Saved = saved
         });
     }
@@ -124,6 +125,11 @@ public class StorePulseController(IStoreContext storeContext, ScanHistory histor
     [CheckPermission(StorePulsePermissions.Manage)]
     public async Task<IActionResult> Settings(SettingsModel model)
     {
+        // nopCommerce's string model binder keeps only the first value of a repeated field, so read every
+        // ticked checkbox from the form itself.
+        model.EnabledCatalogChecks = Request.HasFormContentType
+            ? Request.Form[nameof(SettingsModel.EnabledCatalogChecks)].Where(id => id != null).ToList()
+            : [];
         if (!ModelState.IsValid)
             return View("~/Plugins/Misc.StorePulse/Views/Settings.cshtml", model);
         var storeId = (await storeContext.GetCurrentStoreAsync()).Id;
@@ -138,10 +144,36 @@ public class StorePulseController(IStoreContext storeContext, ScanHistory histor
             GuestWarningCount = model.GuestWarningCount, LogWarningCount = model.LogWarningCount,
             ActivityLogWarningCount = model.ActivityLogWarningCount, SentEmailWarningCount = model.SentEmailWarningCount,
             OldCartWarningCount = model.OldCartWarningCount, CatalogChecksEnabled = model.CatalogChecksEnabled,
+            DisabledCatalogChecks = CatalogAudit.FormatDisabled(CatalogAudit.CheckIds.Except(model.EnabledCatalogChecks ?? [],
+                StringComparer.OrdinalIgnoreCase)),
             NetworkChecksEnabled = model.NetworkChecksEnabled
         }, storeId);
         await schedule.RefreshAsync();
         return RedirectToAction(nameof(Settings), new { saved = true });
+    }
+
+    /// <summary>The items behind a catalog finding, read now (at most 50). Nothing is stored.</summary>
+    [HttpGet]
+    [CheckPermission(StorePulsePermissions.View)]
+    public async Task<IActionResult> CatalogItems(string checkId)
+    {
+        if (!CatalogAudit.IsCatalogCheck(checkId))
+            return NotFound();
+        var storeId = (await storeContext.GetCurrentStoreAsync()).Id;
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(HttpContext.RequestAborted);
+        limit.CancelAfter(TimeSpan.FromSeconds(15));
+        CatalogItemList list;
+        try
+        {
+            list = await catalog.ListAsync(checkId, storeId, limit.Token);
+        }
+        catch (Exception exception) when (!HttpContext.RequestAborted.IsCancellationRequested)
+        {
+            // The page only says the list couldn't load; the reason goes to the store's own system log.
+            await logger.WarningAsync($"StorePulse couldn't load the items for {checkId}.", exception);
+            list = null;
+        }
+        return PartialView("~/Plugins/Misc.StorePulse/Views/_CatalogItems.cshtml", list);
     }
 
     [HttpPost]

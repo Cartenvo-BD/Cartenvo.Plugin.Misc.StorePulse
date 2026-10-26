@@ -18,6 +18,8 @@ public class SettingsModel
     [Range(1, int.MaxValue)] public int SentEmailWarningCount { get; set; } = 50000;
     [Range(1, int.MaxValue)] public int OldCartWarningCount { get; set; } = 50000;
     public bool CatalogChecksEnabled { get; set; } = true;
+    /// <summary>Catalog check ids that are ticked. Unticked ones are saved as disabled.</summary>
+    public List<string> EnabledCatalogChecks { get; set; } = [];
     public bool NetworkChecksEnabled { get; set; }
     public bool Saved { get; set; }
 }

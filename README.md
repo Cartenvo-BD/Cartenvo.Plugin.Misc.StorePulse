@@ -32,9 +32,9 @@ It is **read-only**. A scan changes nothing in your store, runs no tasks, sends 
 | Security | Detailed error pages, CAPTCHA on registration, sample admin account still in use |
 | Plugins | Plugins that support this version, missing plugin dependencies, plugins that failed to load, known nopCommerce bugs in your version |
 | Database | Guest customer records, bot traffic, the Delete guests task, system log size, activity log size, old sent emails, old shopping carts |
-| Catalog quality | Products without images, duplicate SKUs, missing meta descriptions, products priced at 0, products without a category, duplicate page URLs |
+| Catalog quality | 19 checks: images, SKUs, GTINs, manufacturers, descriptions, meta descriptions (missing and duplicated), URL names (missing and duplicated), prices at 0, old prices below the price, sold-out products, expired products, products nobody can see, empty categories and reviews waiting for approval. "Show affected items" lists the products behind each finding |
 
-Catalog quality has its own score and can be turned off. Warning thresholds can be changed in Settings.
+Catalog quality has its own score. It can be turned off, or one check at a time in Settings. Warning thresholds can be changed in Settings.
 
 ## Requirements
 

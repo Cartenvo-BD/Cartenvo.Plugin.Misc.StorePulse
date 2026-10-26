@@ -100,5 +100,5 @@ public class SchedulingTests
 
     private static Mock<StorePulseScanner> Scanner(ScanHistory history) => new(MockBehavior.Strict,
         Mock.Of<IScheduleTaskService>(), Mock.Of<IRepository<QueuedEmail>>(), Mock.Of<ILogger>(),
-        Mock.Of<IStoreService>(), Mock.Of<IPluginService>(), history, new StorePulseSettings(), null, null);
+        Mock.Of<IStoreService>(), Mock.Of<IPluginService>(), history, new StorePulseSettings(), null, null, null);
 }

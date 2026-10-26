@@ -12,6 +12,7 @@ public class StorePulseStartup : INopStartup
     {
         services.AddScoped<ScanHistory>();
         services.AddScoped<ExtendedDiagnostics>();
+        services.AddScoped<CatalogAudit>();
         services.AddScoped<StorePulseScanner>();
         services.AddScoped<StorePulseSchedule>();
     }

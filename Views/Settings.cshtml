@@ -58,6 +58,17 @@
                     <input asp-for="CatalogChecksEnabled" />
                     <span><b>@T(P + "CatalogChecksEnabled")</b><span class="sp-hint d-block">@T(P + "CatalogChecksEnabled.Hint")</span></span>
                 </label>
+                <fieldset class="sp-checklist" data-sp-catalog-list>
+                    <legend>@T(P + "CatalogChecks")</legend>
+                    <p class="sp-hint">@T(P + "CatalogChecks.Hint")</p>
+                    @foreach (var id in Cartenvo.Plugin.Misc.StorePulse.Services.CatalogAudit.CheckIds)
+                    {
+                        <label>
+                            <input type="checkbox" name="EnabledCatalogChecks" value="@id" @(Model.EnabledCatalogChecks.Contains(id) ? "checked" : null) />
+                            @T(P + id + ".Title") <span class="sp-id">@id</span>
+                        </label>
+                    }
+                </fieldset>
                 <label class="sp-switch">
                     <input asp-for="NetworkChecksEnabled" />
                     <span><b>@T(P + "NetworkChecksEnabled")</b><span class="sp-hint d-block">@T(P + "NetworkChecksEnabled.Hint")</span></span>

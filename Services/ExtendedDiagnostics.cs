@@ -6,13 +6,11 @@ using LinqToDB;
 using Microsoft.AspNetCore.Http;
 using Nop.Core;
 using Nop.Core.Configuration;
-using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Logging;
 using Nop.Core.Domain.Messages;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Security;
-using Nop.Core.Domain.Seo;
 using Nop.Data;
 using Nop.Services.Configuration;
 using Nop.Services.Plugins;
@@ -24,7 +22,7 @@ namespace Cartenvo.Plugin.Misc.StorePulse.Services;
 
 /// <summary>
 /// Checks added from community research: database hygiene, email accounts, security basics,
-/// plugin load problems, known platform issues and catalog quality. All are read-only.
+/// plugin load problems and known platform issues. All are read-only. Catalog checks are in <see cref="CatalogAudit"/>.
 /// Only CONFIG-004 opens a network connection, and only when the administrator enables it.
 /// </summary>
 public class ExtendedDiagnostics(
@@ -37,10 +35,6 @@ public class ExtendedDiagnostics(
     IRepository<QueuedEmail> queue,
     IRepository<EmailAccount> emailAccounts,
     IRepository<Log> logs,
-    IRepository<Product> products,
-    IRepository<ProductPicture> productPictures,
-    IRepository<ProductCategory> productCategories,
-    IRepository<UrlRecord> urlRecords,
     IScheduleTaskService tasks,
     IStoreService stores,
     ISettingService settingService,
@@ -89,15 +83,6 @@ public class ExtendedDiagnostics(
                 return new HealthCheckResult(id, category, scope, status, $"Plugins.Misc.StorePulse.{id}.Title",
                     $"Plugins.Misc.StorePulse.Status.{status}", $"Plugins.Misc.StorePulse.{id}.Action", now, metrics);
             });
-        IHealthCheck Catalog(string id, string metric, Func<Task<int>> count)
-            => Check(id, HealthCategory.Catalog, async () =>
-            {
-                var observed = await count();
-                return (observed > 0 ? HealthStatus.Warning : HealthStatus.Healthy, new() { [metric] = observed });
-            });
-        IQueryable<Product> Visible() => products.Table.Where(product =>
-            product.Published && !product.Deleted && product.VisibleIndividually);
-
         var list = new List<IHealthCheck>();
             // Database hygiene
             list.Add(Check("DB-001", HealthCategory.Database, async () =>
@@ -248,26 +233,6 @@ public class ExtendedDiagnostics(
                     new Dictionary<string, decimal> { ["KnownIssues"] = affected, ["IssuesInCatalog"] = KnownIssues.All.Count }));
             }));
 
-        if (!settings.CatalogChecksEnabled)
-            return list;
-
-            // Catalog quality (separate score)
-            list.Add(Catalog("CAT-001", "ProductsWithoutImages", () => Visible().CountAsync(product =>
-                !productPictures.Table.Any(picture => picture.ProductId == product.Id), token)));
-            list.Add(Catalog("CAT-003", "DuplicateSkus", () => products.Table
-                .Where(product => !product.Deleted && product.Sku != null && product.Sku != "")
-                .GroupBy(product => product.Sku).Where(group => group.Count() > 1).Select(group => group.Key).CountAsync(token)));
-            list.Add(Catalog("CAT-004", "ProductsWithoutMetaDescription", () => Visible().CountAsync(product =>
-                product.MetaDescription == null || product.MetaDescription == "", token)));
-            list.Add(Catalog("CAT-005", "ZeroPriceProducts", () => Visible().CountAsync(product =>
-                product.ProductTypeId == (int)ProductType.SimpleProduct && product.Price == 0 &&
-                !product.CallForPrice && !product.CustomerEntersPrice, token)));
-            list.Add(Catalog("CAT-007", "ProductsWithoutCategory", () => Visible().CountAsync(product =>
-                !productCategories.Table.Any(mapping => mapping.ProductId == product.Id), token)));
-            list.Add(Catalog("CAT-009", "DuplicateUrlNames", () => urlRecords.Table
-                .Where(record => record.IsActive)
-                .GroupBy(record => new { record.Slug, record.LanguageId }).Where(group => group.Count() > 1)
-                .Select(group => group.Key.Slug).CountAsync(token)));
         return list;
     }
 

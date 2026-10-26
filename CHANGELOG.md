@@ -2,6 +2,14 @@
 
 Versions are `<nopCommerce version>.<release>`, so release 10 is `4.80.10` on nopCommerce 4.80 and `4.90.10` on 4.90.
 
+## 12
+
+- **Catalog audit.** 13 new catalog checks, for 19 in total: products without SKU, GTIN or part number, manufacturer, description or URL name; sold-out products that can't be ordered; published products past their end date (customers get a 404); old prices lower than the price (shown as a price rise); products no store or customer role can see; empty categories; categories and manufacturers without meta description; duplicate meta descriptions; reviews waiting more than 7 days for approval.
+- **Show affected items.** Each catalog finding with a problem can list the first 50 products, categories, manufacturers or reviews behind it, with links to edit them. The list is read when you open it and is never stored in scan history or reports.
+- **Choose catalog checks.** Settings has a checkbox for each catalog check, so stores that don't use SKUs or GTINs can turn those off.
+- "Products without meta description" now follows nopCommerce: when "Generate product meta description" is on, products with a short description are no longer counted.
+- Catalog checks use only fields that are the same in nopCommerce 4.80, 4.90 and 5.00. Tested on 4.80 with SQL Server and 4.90 with PostgreSQL, including a 100,000-product catalog (full scan 3.6 s).
+
 ## 11
 
 - **Help popup.** "Learn more" on each finding opens a popup inside the plugin: what the check looks at, why it matters, common causes, steps to fix it and when it's safe to ignore. The texts are locale resources, so stores can translate them.

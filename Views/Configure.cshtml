@@ -312,7 +312,14 @@
                                             <a class="btn btn-sm btn-outline-primary" href="@adminUrl"><i class="fas fa-external-link-alt"></i> @T(P + "OpenPage")</a>
                                         }
                                         <button type="button" class="btn btn-sm btn-link" data-sp-help="@finding.CheckId"><i class="far fa-question-circle"></i> @T(P + "LearnMore")</button>
+                                        @if (finding.Category == HealthCategory.Catalog && finding.Status == HealthStatus.Warning &&
+                                             Cartenvo.Plugin.Misc.StorePulse.Services.CatalogAudit.IsCatalogCheck(finding.CheckId))
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-sp-items="@Url.Action("CatalogItems", "StorePulse", new { checkId = finding.CheckId })"
+                                                    data-loading="@T(P + "Items.Loading")"><i class="fas fa-list"></i> <span>@T(P + "Items.Show")</span></button>
+                                        }
                                     </div>
+                                    <div data-sp-items-target hidden></div>
                                     @if (finding.CheckId == "PLUGIN-006")
                                     {
                                         <div>
@@ -512,6 +519,17 @@
             fill(help.querySelector('[data-sp-help-body]'), template, 'body');
             fill(help.querySelector('[data-sp-help-links]'), template, 'links');
             jQuery(help).modal('show');
+        });
+    });
+    root.querySelectorAll('[data-sp-items]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var target = button.closest('.sp-detail').querySelector('[data-sp-items-target]');
+            var label = button.querySelector('span'), text = label.textContent;
+            button.disabled = true; label.textContent = button.getAttribute('data-loading');
+            fetch(button.getAttribute('data-sp-items'), { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (response) { if (!response.ok) throw new Error(); return response.text(); })
+                .then(function (html) { target.innerHTML = html; target.hidden = false; button.remove(); })
+                .catch(function () { button.disabled = false; label.textContent = text; });
         });
     });
     apply();

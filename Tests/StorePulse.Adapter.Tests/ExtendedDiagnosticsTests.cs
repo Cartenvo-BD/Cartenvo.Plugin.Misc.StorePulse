@@ -5,12 +5,10 @@ using Cartenvo.Plugin.Misc.StorePulse.Services;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Nop.Core.Configuration;
-using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Logging;
 using Nop.Core.Domain.Messages;
 using Nop.Core.Domain.Orders;
-using Nop.Core.Domain.Seo;
 using Nop.Data;
 using Nop.Services.Configuration;
 using Nop.Services.Logging;
@@ -40,8 +38,7 @@ public class ExtendedDiagnosticsTests
         plugins.Setup(service => service.GetIncompatiblePlugins()).Returns(new Dictionary<string, PluginIncompatibleType>());
         return new ExtendedDiagnostics(Failing<Customer>(), Failing<CustomerRole>(), Failing<CustomerCustomerRoleMapping>(),
             Failing<Order>(), Failing<ActivityLog>(), Failing<ShoppingCartItem>(), Failing<QueuedEmail>(),
-            Failing<EmailAccount>(), Failing<Log>(), Failing<Product>(), Failing<ProductPicture>(),
-            Failing<ProductCategory>(), Failing<UrlRecord>(), Mock.Of<IScheduleTaskService>(), Mock.Of<IStoreService>(),
+            Failing<EmailAccount>(), Failing<Log>(), Mock.Of<IScheduleTaskService>(), Mock.Of<IStoreService>(),
             settings.Object, plugins.Object, new AppSettings(new List<IConfig> { new CommonConfig() }), http ?? Mock.Of<IHttpContextAccessor>(),
             Mock.Of<IServiceProvider>());
     }
@@ -53,7 +50,7 @@ public class ExtendedDiagnosticsTests
         var results = await new HealthCheckRunner().RunAsync(new HealthCheckRegistry(checks),
             new HealthCheckContext(1, DateTimeOffset.UtcNow), TimeSpan.FromSeconds(30), CancellationToken.None);
 
-        Assert.That(results.Count, Is.EqualTo(22));
+        Assert.That(results.Count, Is.EqualTo(16));
         var resources = StorePulseResources.All();
         foreach (var result in results)
         {
@@ -73,14 +70,6 @@ public class ExtendedDiagnosticsTests
             "Core warnings need a request; background scans skip them");
         var json = System.Text.Json.JsonSerializer.Serialize(results);
         Assert.That(json, Does.Not.Contain("secret").And.Not.Contain("customer@example.com"));
-    }
-
-    [Test]
-    public void CatalogChecksCanBeTurnedOff()
-    {
-        var checks = Create().Create(1, DateTimeOffset.UtcNow, new StorePulseSettings { CatalogChecksEnabled = false },
-            CancellationToken.None);
-        Assert.That(checks.Any(check => check.Category == HealthCategory.Catalog), Is.False);
     }
 
     [Test]

@@ -75,6 +75,16 @@
     .sp .sp-hint { font-size: .82rem; color: var(--sp-muted); margin-top: 4px; }
     .sp .sp-switch { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; }
     .sp .sp-switch input { width: 18px; height: 18px; margin-top: 3px; flex: 0 0 auto; }
+    .sp .sp-items { max-height: 360px; overflow: auto; border: 1px solid var(--sp-line); border-radius: 8px; }
+    .sp .sp-items table { margin: 0; font-size: .875rem; }
+    .sp .sp-items thead th { position: sticky; top: 0; background: var(--sp-soft); border-top: 0; font-weight: 600; }
+    .sp .sp-items td { vertical-align: middle; word-break: break-word; }
+    .sp .sp-items .sp-id { display: block; font-size: .72rem; color: var(--sp-muted); font-family: SFMono-Regular, Consolas, monospace; }
+    .sp .sp-items-note { font-size: .8rem; color: var(--sp-muted); margin: 6px 0 0; }
+    .sp .sp-checklist { border: 1px solid var(--sp-line); border-radius: 8px; padding: 10px 14px; margin: 4px 0 8px 30px; }
+    .sp .sp-checklist legend { font-size: .9rem; font-weight: 600; width: auto; padding: 0 4px; margin: 0; }
+    .sp .sp-checklist label { display: flex; gap: 8px; align-items: baseline; font-weight: 400; margin: 0; padding: 3px 0; }
+    .sp .sp-checklist .sp-id { font-size: .72rem; color: var(--sp-muted); font-family: SFMono-Regular, Consolas, monospace; margin-left: auto; }
     .sp .sp-spin { display: none; } .sp .sp-busy .sp-spin { display: inline-block; } .sp .sp-busy .sp-idle { display: none; }
     /* Help popup. The script moves it to the end of the page body, outside .sp */
     .sp-help .modal-title .sp-id { font-size: .8rem; color: #64748b; font-family: SFMono-Regular, Consolas, monospace; margin-left: 6px; }
@@ -84,5 +94,5 @@
     .sp-help .modal-body ul, .sp-help .modal-body ol { padding-left: 1.3rem; margin-bottom: 6px; }
     .sp-help .modal-body li { margin-bottom: 4px; }
     .sp-help .sp-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-    @@media (max-width: 576px) { .sp .sp-detail { padding-left: 16px; } .sp .sp-ring { margin: 0 auto; } .sp .sp-verdict { text-align: center; } .sp .sp-bar { margin: 6px auto 0; } }
+    @@media (max-width: 576px) { .sp .sp-detail { padding-left: 16px; } .sp .sp-checklist { margin-left: 0; } .sp .sp-ring { margin: 0 auto; } .sp .sp-verdict { text-align: center; } .sp .sp-bar { margin: 6px auto 0; } }
 </style>

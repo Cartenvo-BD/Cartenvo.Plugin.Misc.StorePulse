@@ -14,7 +14,8 @@ namespace Cartenvo.Plugin.Misc.StorePulse.Services;
 
 public class StorePulseScanner(IScheduleTaskService tasks, IRepository<QueuedEmail> queue,
     ILogger logger, IStoreService stores, IPluginService plugins, ScanHistory history, StorePulseSettings settings,
-    IRepository<Log> logRepository = null, ExtendedDiagnostics extended = null)
+    IRepository<Log> logRepository = null, ExtendedDiagnostics extended = null,
+    CatalogAudit catalog = null)
 {
     // Global sources are read once per scan. Keep the gate held until all DB work completes.
     // This gate protects one application process; multi-instance coordination is not claimed.
@@ -220,6 +221,8 @@ public class StorePulseScanner(IScheduleTaskService tasks, IRepository<QueuedEma
             });
             if (extended != null)
                 checks.AddRange(extended.Create(storeId, now, settings, cancellationToken));
+            if (catalog != null)
+                checks.AddRange(catalog.Create(storeId, now, settings));
             cancellationToken.ThrowIfCancellationRequested();
             var results = await new HealthCheckRunner().RunAsync(new HealthCheckRegistry(checks),
                 new HealthCheckContext(storeId, now), TimeSpan.FromSeconds(30), cancellationToken,

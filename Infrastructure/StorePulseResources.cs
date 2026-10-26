@@ -107,21 +107,60 @@ public static class StorePulseResources
         ("CAT-001", "Products without images",
             "Products without photos sell less and look unfinished.",
             "Open Catalog → Products and add at least one picture to each published product."),
+        ("CAT-002", "Products without SKU",
+            "Imports, stock updates and integrations match products by SKU. Products without one can't be matched.",
+            "Give each product a SKU in the Info tab. If your store doesn't use SKUs, turn this check off in Settings."),
         ("CAT-003", "Duplicate SKUs",
             "The same SKU on several products confuses stock, imports and integrations.",
             "Open Catalog → Products, search by SKU and give each product a unique one."),
-        ("CAT-004", "Products without meta description",
-            "Search engines show the meta description in results. Without one, they pick random text.",
-            "Add a short, useful meta description in the SEO tab of each product."),
+        ("CAT-004", "Products without their own meta description",
+            "These product pages show your store's default description in search results, so many pages share the same text.",
+            "Add a meta description in the SEO tab, or a short description if \"Generate product meta description\" is on in SEO settings."),
         ("CAT-005", "Products priced at 0",
             "A simple product with price 0 can be ordered for free by mistake.",
             "Set a price, or enable \"Call for price\" or \"Customer enters price\" if 0 is intended."),
+        ("CAT-006", "Sold-out products that can't be ordered",
+            "Customers find these products but can't buy them, and no backorder is allowed.",
+            "Restock them, allow backorders, or set \"Low stock activity\" to unpublish products that sell out."),
         ("CAT-007", "Products without a category",
             "Customers can't find products that aren't in any category.",
             "Open Catalog → Products and assign each published product to a category."),
+        ("CAT-008", "Products without GTIN or part number",
+            "Google Shopping and other product feeds need a GTIN (barcode) or a manufacturer part number for most products.",
+            "Add the GTIN or manufacturer part number in the Info tab. If you don't use product feeds, turn this check off in Settings."),
         ("CAT-009", "Duplicate page URLs",
             "Two pages with the same URL name compete in search results, and only one can be reached.",
-            "Open the SEO tab of the products or categories involved and give each a unique URL name.")
+            "Open the SEO tab of the products or categories involved and give each a unique URL name."),
+        ("CAT-010", "Products without a description",
+            "A product page with no text gives customers and search engines nothing to go on, so it rarely ranks.",
+            "Write a short description and a full description for each product, starting with your best sellers."),
+        ("CAT-011", "Products without a manufacturer",
+            "Search engines and Google Shopping use the manufacturer as the product's brand.",
+            "Open Catalog → Manufacturers, add the brand, then assign it to each product."),
+        ("CAT-012", "Published products past their end date",
+            "These products still look published in the admin area, but customers get a \"page not found\" error.",
+            "Clear or extend \"Available end date\" on the product, or unpublish it."),
+        ("CAT-013", "Old price lower than the price",
+            "nopCommerce shows the old price crossed out next to the price, so customers see a price increase.",
+            "Set the old price higher than the price, or set it to 0 if the product isn't on sale."),
+        ("CAT-014", "Products without a URL name",
+            "Without a search engine friendly name, links to the product are empty and search engines can't reach it.",
+            "Open the product and save it. nopCommerce creates a URL name from the product name when the field is empty."),
+        ("CAT-015", "Products no customer can see",
+            "These products are limited to stores or customer roles, but none are selected, so nobody can see them.",
+            "Open the product, select the stores and customer roles that should see it, or turn the limits off."),
+        ("CAT-016", "Empty categories",
+            "Published categories with no products show customers an empty page, which search engines see as thin content.",
+            "Add products to these categories, or unpublish them until they have products."),
+        ("CAT-017", "Categories and manufacturers without meta description",
+            "These pages show your store's default description in search results, so many pages share the same text.",
+            "Open Catalog → Categories (and Manufacturers) and add a meta description in the SEO tab."),
+        ("CAT-018", "Duplicate meta descriptions",
+            "Several products share the same meta description, so search engines can't tell them apart in results.",
+            "Write a meta description for each product that says what is different about it."),
+        ("CAT-019", "Reviews waiting for approval",
+            "Customer reviews have waited more than a week. Reviews help other customers decide, and their stars can show in search results.",
+            "Open Catalog → Product reviews, filter by not approved, and approve or delete them.")
     ];
 
     public static readonly Dictionary<string, string> MetricLabels = new()
@@ -148,7 +187,14 @@ public static class StorePulseResources
         ["KnownIssues"] = "Known bugs affecting you", ["IssuesInCatalog"] = "Bugs in catalog",
         ["ProductsWithoutImages"] = "Products", ["DuplicateSkus"] = "Duplicated SKUs",
         ["ProductsWithoutMetaDescription"] = "Products", ["ZeroPriceProducts"] = "Products",
-        ["ProductsWithoutCategory"] = "Products", ["DuplicateUrlNames"] = "Duplicated URL names"
+        ["ProductsWithoutCategory"] = "Products", ["DuplicateUrlNames"] = "Duplicated URL names",
+        ["ProductsWithoutSku"] = "Products", ["SoldOutProducts"] = "Products", ["ProductsWithoutIdentifier"] = "Products",
+        ["ProductsWithoutDescription"] = "Products", ["ProductsWithoutManufacturer"] = "Products",
+        ["ExpiredProducts"] = "Products", ["OldPriceBelowPrice"] = "Products", ["ProductsWithoutUrlName"] = "Products",
+        ["HiddenByStoreLimits"] = "Hidden by store limits", ["HiddenByAcl"] = "Hidden by customer roles",
+        ["EmptyCategories"] = "Categories", ["CategoriesWithoutMetaDescription"] = "Categories",
+        ["ManufacturersWithoutMetaDescription"] = "Manufacturers", ["DuplicateMetaDescriptions"] = "Shared descriptions",
+        ["ReviewsWaiting"] = "Reviews older than 7 days"
     };
 
     public static Dictionary<string, string> All()
@@ -247,7 +293,17 @@ public static class StorePulseResources
         Add("ActivityLogWarningCount", "Warn at this many activity log records");
         Add("SentEmailWarningCount", "Warn at this many sent emails older than 30 days");
         Add("OldCartWarningCount", "Warn at this many cart items older than 90 days");
-        Add("CatalogChecksEnabled", "Check catalog quality (images, SKUs, SEO, prices)");
+        Add("CatalogChecksEnabled", "Check catalog quality (SEO, images, prices, stock, product data)");
+        Add("CatalogChecks", "Catalog checks to run");
+        Add("CatalogChecks.Hint", "Turn off checks that don't apply to your store, for example SKUs or GTINs if you don't use them.");
+        Add("Items.Show", "Show affected items"); Add("Items.Loading", "Loading…");
+        Add("Items.Error", "Couldn't load the list. Try again, or open the admin page.");
+        Add("Items.Live", "Read just now, so it can differ from the scan.");
+        Add("Items.More", "Showing the first {0}. Fix these and scan again to see the rest.");
+        Add("Items.None", "Nothing matches any more. Run a new scan to update the result.");
+        Add("Items.Name", "Name"); Add("Items.Detail", "Details"); Add("Items.Edit", "Edit");
+        Add("Items.Kind.Product", "Product"); Add("Items.Kind.Category", "Category");
+        Add("Items.Kind.Manufacturer", "Manufacturer"); Add("Items.Kind.UrlRecord", "Page"); Add("Items.Kind.Review", "Review");
         Add("CatalogChecksEnabled.Hint", "Catalog results get their own score and never lower the health score.");
         Add("NetworkChecksEnabled", "Check SSL certificate expiry");
         Add("NetworkChecksEnabled.Hint", "Connects only to this store's own address to read the certificate. Nothing is sent.");

@@ -22,6 +22,8 @@ public class StorePulseSettings : ISettings
 
     // Optional groups.
     public bool CatalogChecksEnabled { get; set; } = true;
+    /// <summary>Comma-separated catalog check ids that don't run, for example "CAT-002,CAT-008". Empty = all run.</summary>
+    public string DisabledCatalogChecks { get; set; } = "";
     /// <summary>Off by default. Allows the SSL check to connect to configured store hosts only.</summary>
     public bool NetworkChecksEnabled { get; set; }
 }
