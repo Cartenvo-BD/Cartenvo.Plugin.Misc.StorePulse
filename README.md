@@ -12,7 +12,7 @@ It is **read-only**. A scan changes nothing in your store, runs no tasks, sends 
 - **Plain-language results.** Each finding explains why it matters, shows the evidence, says what to do and links to the admin page where you can fix it.
 - **Help built in.** "Learn more" opens a popup with common causes, steps to fix and when it's safe to ignore, plus a link to the full guide on [cartenvo.com](https://cartenvo.com/plugins/storepulse/guides).
 - **Since the previous scan** shows new problems and fixed ones, with a score trend over time.
-- **Upgrade readiness** lists the installed plugins that don't yet declare support for the nopCommerce version you plan to move to. For 5.00 it also lists what in the store needs work: forums, news and polls, the Manual payment method, stored card details, old email template tokens, plugin code that uses changed APIs, the theme and the .NET 10 runtime.
+- **Upgrade readiness** lists the installed plugins that don't yet declare support for the nopCommerce version you plan to move to. For 5.00 it also lists what in the store needs work: forums, news and polls, the Manual payment method, stored card details, old email template tokens, plugin code that uses changed APIs, the theme, the .NET 10 runtime and old attribute picture links the upgrade would copy twice.
 - **Dashboard card** on the admin home page with the latest score.
 - **Reports** download as JSON or as an HTML page you can share with a client or developer. Reports leave out email addresses, subjects, credentials, URLs and raw error messages.
 - **Optional scheduled scans**, off by default.
@@ -21,7 +21,7 @@ It is **read-only**. A scan changes nothing in your store, runs no tasks, sends 
 
 ## What it checks
 
-39 checks in 8 areas. A check that can't get enough evidence shows **Couldn't check**. It never counts as a pass.
+52 checks in 8 areas. A check that can't get enough evidence shows **Couldn't check**. It never counts as a pass.
 
 | Area | Checks |
 |---|---|
@@ -36,10 +36,12 @@ It is **read-only**. A scan changes nothing in your store, runs no tasks, sends 
 
 Catalog quality has its own score. It can be turned off, or one check at a time in Settings. Warning thresholds can be changed in Settings.
 
+**Before you upgrade to 5.00.** On 4.80 and 4.90, the Upgrade readiness page adds 10 more checks when the target is 5.00: forums, news and polls, the Manual payment method, card details stored in orders (counted, never read), email templates with `%Order.CustomValues%`, plugin code that uses APIs 5.00 changes (read from the plugin files, never loaded), the theme, ASP.NET Core 10 on the server and old attribute picture links. They're read when the page opens and don't affect the health score.
+
 ## Requirements
 
-- nopCommerce **4.80** or **4.90**.
-- SQL Server or PostgreSQL. Both are tested. MySQL is supported by nopCommerce but hasn't been tested with StorePulse yet.
+- nopCommerce **4.80**, **4.90** or **5.00** (5.00 runs on .NET 10).
+- SQL Server or PostgreSQL. Both are tested on 4.80 and 4.90; 5.00 has been tested on SQL Server. MySQL is supported by nopCommerce but hasn't been tested with StorePulse yet.
 
 Each build targets one nopCommerce version. Use the 4.80 build on a 4.80 store, the 4.90 build on a 4.90 store and the 5.00 build (.NET 10) on a 5.00 store.
 
@@ -73,7 +75,7 @@ dotnet build Cartenvo.Plugin.Misc.StorePulse/Cartenvo.Plugin.Misc.StorePulse.csp
 The output goes to `src/Presentation/Nop.Web/Plugins/Misc.StorePulse`.
 
 - The build reads the version from the tree's `Nop.Core.csproj`. Pass `-p:NopVersion=4.80` to override it.
-- `plugin.json` is a template. The build fills in the plugin version (for example `4.80.10` or `4.90.10`) and the supported nopCommerce version.
+- `plugin.json` is a template. The build fills in the plugin version (for example `4.80.13`, `4.90.13` or `5.00.13`) and the supported nopCommerce version.
 - The release number is `PluginRevision` in the `.csproj`. Bump it for every release, because upgrade migrations only run when the version changes.
 - Stop the store before rebuilding. Windows locks loaded plugin files.
 
@@ -91,7 +93,7 @@ dotnet test Cartenvo.Plugin.Misc.StorePulse/Tests/StorePulse.Adapter.Tests
 | `/` | The nopCommerce plugin: controllers, views, services and migrations |
 | `StorePulse.Core/` | The shared engine: check runner, scoring, rules and HTML report. It doesn't depend on nopCommerce |
 | `Tests/StorePulse.Core.Tests` | Engine tests |
-| `Tests/StorePulse.Adapter.Tests` | Plugin tests: scanner, history, permissions, scheduling, lifecycle |
+| `Tests/StorePulse.Adapter.Tests` | Plugin tests: scanner, catalog audit, upgrade readiness, history, permissions, scheduling, lifecycle |
 
 ## Known limitations
 
