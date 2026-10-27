@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    One source tree builds for nopCommerce 4.80 and 4.90. The target version is read from the host's
+    One source tree builds for nopCommerce 4.80, 4.90 and 5.00. The target version is read from the host's
     Nop.Core.csproj, so the plugin builds for whichever source tree it sits in (src/Plugins).
-    Override with -p:NopVersion=4.80 if needed.
+    Override with -p:NopVersion=4.80 if needed. 5.00 builds target .NET 10.
   -->
   <PropertyGroup>
-    <SupportedNopVersions>4.80;4.90</SupportedNopVersions>
+    <SupportedNopVersions>4.80;4.90;5.00</SupportedNopVersions>
     <!-- Plugin release number, shared by every nopCommerce line (gives 4.80.12 and 4.90.12).
          Bump it on every release: resource migrations rerun only when the version changes. -->
-    <PluginRevision>12</PluginRevision>
+    <PluginRevision>13</PluginRevision>
 
     <NopCoreProjectPath>$(MSBuildProjectDirectory)\..\..\Libraries\Nop.Core\Nop.Core.csproj</NopCoreProjectPath>
     <NopVersion Condition="'$(NopVersion)' == '' And Exists('$(NopCoreProjectPath)')">$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(NopCoreProjectPath)')), '&lt;Version&gt;(\d+\.\d+)&lt;/Version&gt;').Groups[1].Value)</NopVersion>
@@ -17,6 +17,7 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework Condition="'$(NopVersion)' == '5.00'">net10.0</TargetFramework>
     <Version>$(NopVersion).$(PluginRevision)</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <DefineConstants>$(DefineConstants);$(NopVersionSymbol)</DefineConstants>
@@ -38,7 +39,7 @@
 
   <Target Name="ValidateNopVersion" BeforeTargets="BeforeBuild">
     <Error Condition="'$(NopVersion)' == ''"
-           Text="Could not detect the nopCommerce version from $(NopCoreProjectPath). Place the plugin in src/Plugins of a nopCommerce source tree or pass -p:NopVersion=4.80 (or 4.90)." />
+           Text="Could not detect the nopCommerce version from $(NopCoreProjectPath). Place the plugin in src/Plugins of a nopCommerce source tree or pass -p:NopVersion=4.80 (or 4.90, 5.00)." />
     <Error Condition="!$([System.String]::Copy(';$(SupportedNopVersions);').Contains(';$(NopVersion);'))"
            Text="nopCommerce $(NopVersion) is not supported by StorePulse. Supported versions: $(SupportedNopVersions)." />
     <Message Importance="high" Text="StorePulse $(Version) for nopCommerce $(NopVersion)" />

@@ -1,4 +1,6 @@
 @model Cartenvo.Plugin.Misc.StorePulse.Models.UpgradeModel
+@using Cartenvo.Plugin.Misc.StorePulse.Models
+@using Cartenvo.Plugin.Misc.StorePulse.Services
 @{
     Layout = "_AdminLayout";
     ViewBag.PageTitle = T("Plugins.Misc.StorePulse.Upgrade.Title").Text;
@@ -39,6 +41,58 @@
             </form>
         </div>
     </div>
+
+    @if (Model.ShowReadiness)
+    {
+        var order = new[] { ReadinessStatus.ActionNeeded, ReadinessStatus.Check, ReadinessStatus.Unknown, ReadinessStatus.Ready };
+        <div class="sp-card" id="sp-readiness">
+            <h3><i class="fas fa-clipboard-check"></i> @T(P + "Upgrade.Readiness.Title", Model.TargetVersion)</h3>
+            <p class="sp-sub">@T(P + "Upgrade.Readiness.Hint")</p>
+            <p><b>@T(P + "Upgrade.Readiness.Summary", Model.ReadinessCount(ReadinessStatus.ActionNeeded), Model.ReadinessCount(ReadinessStatus.Check), Model.ReadinessCount(ReadinessStatus.Ready))</b></p>
+            @foreach (var item in Model.Readiness.OrderBy(item => Array.IndexOf(order, item.Status)))
+            {
+                var itemTone = UpgradeModel.Tone(item.Status);
+                var problem = item.Status != ReadinessStatus.Ready;
+                <div class="sp-fix" data-sp-readiness="@item.Id">
+                    <i class="sp-fix-icon @UpgradeModel.Icon(item.Status) @(itemTone)-text"></i>
+                    <div>
+                        <b>@T(P + item.Id + ".Title")</b>
+                        <span class="sp-pill @itemTone ml-1">@T(P + "Upgrade.Readiness.Status." + item.Status)</span>
+                        <p class="mb-1">@T(P + item.MessageKey, item.Args)</p>
+                        @if (item.Details.Count > 0)
+                        {
+                            <ul class="sp-sub mb-1">
+                                @foreach (var detail in item.Details)
+                                {
+                                    <li>@detail</li>
+                                }
+                            </ul>
+                            @if (item.MoreDetails)
+                            {
+                                <p class="sp-sub mb-1">@T(P + "Upgrade.Readiness.More", item.Details.Count)</p>
+                            }
+                        }
+                        @if (problem)
+                        {
+                            <p class="sp-sub mb-1">@T(P + item.Id + ".Why")</p>
+                            <p class="mb-1"><b>@T(P + "WhatToDo"):</b> @T(P + item.Id + ".Action")</p>
+                            @if (item.AdminPath != null)
+                            {
+                                <div class="sp-actions">
+                                    <a class="btn btn-sm btn-outline-primary" href="@Url.Content("~/" + item.AdminPath)"><i class="fas fa-external-link-alt"></i> @T(P + "OpenPage")</a>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+            @if (Model.GuideUrl != null)
+            {
+                <p class="mb-0 mt-2"><a href="@Model.GuideUrl" target="_blank" rel="noopener"><i class="fas fa-book-open"></i> @T(P + "Upgrade.Readiness.Guide")</a></p>
+            }
+        </div>
+        <h3 class="mt-2 mb-2" style="font-size:1.05rem;font-weight:600"><i class="fas fa-puzzle-piece"></i> @T(P + "Upgrade.Readiness.PluginsTitle")</h3>
+    }
 
     <div class="sp-card">
         <div class="table-responsive">

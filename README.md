@@ -1,6 +1,6 @@
 # StorePulse for nopCommerce
 
-**Free store health check for nopCommerce 4.80 and 4.90, by [Cartenvo](https://cartenvo.com).**
+**Free store health check for nopCommerce 4.80, 4.90 and 5.00, by [Cartenvo](https://cartenvo.com).**
 
 StorePulse scans your store in a few seconds and tells you what's wrong, why it matters and what to do about it. It looks at scheduled tasks, the email queue, errors, database growth, security basics, plugin compatibility, upgrade readiness and catalog quality.
 
@@ -12,7 +12,7 @@ It is **read-only**. A scan changes nothing in your store, runs no tasks, sends 
 - **Plain-language results.** Each finding explains why it matters, shows the evidence, says what to do and links to the admin page where you can fix it.
 - **Help built in.** "Learn more" opens a popup with common causes, steps to fix and when it's safe to ignore, plus a link to the full guide on [cartenvo.com](https://cartenvo.com/plugins/storepulse/guides).
 - **Since the previous scan** shows new problems and fixed ones, with a score trend over time.
-- **Upgrade readiness** lists the installed plugins that don't yet declare support for the nopCommerce version you plan to move to.
+- **Upgrade readiness** lists the installed plugins that don't yet declare support for the nopCommerce version you plan to move to. For 5.00 it also lists what in the store needs work: forums, news and polls, the Manual payment method, stored card details, old email template tokens, plugin code that uses changed APIs, the theme and the .NET 10 runtime.
 - **Dashboard card** on the admin home page with the latest score.
 - **Reports** download as JSON or as an HTML page you can share with a client or developer. Reports leave out email addresses, subjects, credentials, URLs and raw error messages.
 - **Optional scheduled scans**, off by default.
@@ -41,7 +41,7 @@ Catalog quality has its own score. It can be turned off, or one check at a time 
 - nopCommerce **4.80** or **4.90**.
 - SQL Server or PostgreSQL. Both are tested. MySQL is supported by nopCommerce but hasn't been tested with StorePulse yet.
 
-Each build targets one nopCommerce version. Use the 4.80 build on a 4.80 store and the 4.90 build on a 4.90 store.
+Each build targets one nopCommerce version. Use the 4.80 build on a 4.80 store, the 4.90 build on a 4.90 store and the 5.00 build (.NET 10) on a 5.00 store.
 
 ## Install
 
@@ -62,7 +62,7 @@ Uninstalling removes StorePulse's settings, texts, permissions, scheduled task, 
 
 ## Build from source
 
-Clone this repository into `src/Plugins` of a nopCommerce source tree. The tree's version (4.80 or 4.90) decides which version the build targets.
+Clone this repository into `src/Plugins` of a nopCommerce source tree. The tree's version (4.80, 4.90 or 5.00) decides which version the build targets. 5.00 builds target .NET 10 and need the .NET 10 SDK; run `dotnet` from the tree so its `global.json` picks the SDK.
 
 ```bash
 cd nopCommerce/src/Plugins

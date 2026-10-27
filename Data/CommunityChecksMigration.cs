@@ -1,9 +1,5 @@
 using FluentMigrator;
-using Nop.Core.Domain.Cms;
-using Nop.Core.Infrastructure;
 using Nop.Data.Migrations;
-using Nop.Services.Configuration;
-using Nop.Services.Localization;
 using Cartenvo.Plugin.Misc.StorePulse.Infrastructure;
 
 namespace Cartenvo.Plugin.Misc.StorePulse.Data;
@@ -14,14 +10,8 @@ public class CommunityChecksMigration : MigrationBase
 {
     public override void Up()
     {
-        EngineContext.Current.Resolve<ILocalizationService>().AddOrUpdateLocaleResource(StorePulseResources.All());
-        var settings = EngineContext.Current.Resolve<ISettingService>();
-        var widgets = settings.LoadSetting<WidgetSettings>();
-        if (!widgets.ActiveWidgetSystemNames.Contains(StorePulsePlugin.SystemName))
-        {
-            widgets.ActiveWidgetSystemNames.Add(StorePulsePlugin.SystemName);
-            settings.SaveSetting(widgets);
-        }
+        MigrationCompat.AddResources(this);
+        MigrationCompat.ActivateWidget(this);
     }
 
     public override void Down() { } // Uninstall removes resources by prefix and deactivates the card.

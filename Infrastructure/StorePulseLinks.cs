@@ -41,6 +41,10 @@ public static class StorePulseLinks
         return GuideBase + slug + Tracking + "#" + checkId.ToLowerInvariant();
     }
 
+    /// <summary>The nopCommerce upgrade guide's 5.00 section on cartenvo.com, or null when guides are off.</summary>
+    public static string UpgradeGuide() =>
+        GuidesPublished ? Website + "insights/nopcommerce-upgrade-guide" + Tracking + "#nopcommerce-5" : null;
+
     /// <summary>Relative admin path (no leading slash) for the page where the finding can be fixed.</summary>
     public static string AdminPath(string checkId) => checkId switch
     {

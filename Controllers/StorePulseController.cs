@@ -20,7 +20,8 @@ namespace Cartenvo.Plugin.Misc.StorePulse.Controllers;
 public class StorePulseController(IStoreContext storeContext, ScanHistory history,
     StorePulseScanner scanner, IPermissionService permissions, ISettingService settingService,
     ILocalizationService localization, IPluginService pluginService, StorePulseSchedule schedule,
-    IWebHelper webHelper, CatalogAudit catalog, Nop.Services.Logging.ILogger logger) : BasePluginController
+    IWebHelper webHelper, CatalogAudit catalog, Nop.Services.Logging.ILogger logger,
+    UpgradeReadiness readiness) : BasePluginController
 {
     private const string BundledAuthor = "nopCommerce team";
 
@@ -77,9 +78,14 @@ public class StorePulseController(IStoreContext storeContext, ScanHistory histor
             .Distinct().OrderBy(version => KnownIssues.TryParse(version, out var parsed) ? parsed : current).ToList();
         target = options.Contains(target) ? target : options.FirstOrDefault(version => version != NopVersion.CURRENT_VERSION)
             ?? NopVersion.CURRENT_VERSION;
+        var storeId = (await storeContext.GetCurrentStoreAsync()).Id;
+        var showReadiness = UpgradeReadiness.AppliesTo(target) && !UpgradeReadiness.AppliesTo(NopVersion.CURRENT_VERSION);
         return View("~/Plugins/Misc.StorePulse/Views/Upgrade.cshtml", new UpgradeModel
         {
             CurrentVersion = NopVersion.FULL_VERSION, TargetVersion = target, TargetOptions = options,
+            ShowReadiness = showReadiness,
+            Readiness = showReadiness ? await readiness.RunAsync(storeId, installed, HttpContext.RequestAborted) : [],
+            GuideUrl = StorePulseLinks.UpgradeGuide(),
             Plugins = installed.Where(plugin => plugin.Installed).Take(500).Select(plugin => new UpgradeItem(
                     Bound(plugin.FriendlyName), Bound(plugin.SystemName), Bound(plugin.Version), Bound(plugin.Author),
                     string.Join(", ", (plugin.SupportedVersions ?? []).Take(10)),

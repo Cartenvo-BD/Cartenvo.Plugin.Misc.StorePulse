@@ -1,7 +1,5 @@
 using FluentMigrator;
-using Nop.Core.Infrastructure;
 using Nop.Data.Migrations;
-using Nop.Services.Localization;
 using Cartenvo.Plugin.Misc.StorePulse.Infrastructure;
 
 namespace Cartenvo.Plugin.Misc.StorePulse.Data;
@@ -10,11 +8,10 @@ namespace Cartenvo.Plugin.Misc.StorePulse.Data;
 /// Re-applies all texts on upgrade. When texts change, move the timestamp forward (and bump PluginRevision in the .csproj)
 /// instead of adding another migration.
 /// </summary>
-[NopMigration("2026/10/28 09:00:00:0000000", "StorePulse wording refresh", MigrationProcessType.NoMatter)]
+[NopMigration("2026/10/30 09:00:00:0000000", "StorePulse wording refresh", MigrationProcessType.NoMatter)]
 public class ResourceRefreshMigration : MigrationBase
 {
-    public override void Up() => EngineContext.Current.Resolve<ILocalizationService>()
-        .AddOrUpdateLocaleResource(StorePulseResources.All());
+    public override void Up() => MigrationCompat.AddResources(this);
 
     public override void Down() { }
 }

@@ -11,7 +11,11 @@ public class ScanMigration : AutoReversingMigration
 {
     public override void Up()
     {
+#if NOP_500
+        this.CreateTableIfNotExists<StorePulseScan>(); // Create.TableFor was removed in 5.00
+#else
         Create.TableFor<StorePulseScan>();
+#endif
         Create.Index("IX_StorePulseScan_Store_Completed").OnTable(nameof(StorePulseScan))
             .OnColumn(nameof(StorePulseScan.StoreId)).Ascending()
             .OnColumn(nameof(StorePulseScan.CompletedOnUtc)).Descending();

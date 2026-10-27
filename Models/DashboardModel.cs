@@ -92,6 +92,30 @@ public class UpgradeModel
     public IList<string> TargetOptions { get; set; } = [];
     public IList<UpgradeItem> Plugins { get; set; } = [];
     public int ReadyCount => Plugins.Count(p => p.Ready || p.Bundled);
+
+    /// <summary>True when the target is 5.00 or later and the store is still on 4.x.</summary>
+    public bool ShowReadiness { get; set; }
+    public IReadOnlyList<Services.ReadinessItem> Readiness { get; set; } = [];
+    /// <summary>Upgrade guide on cartenvo.com, or null when guides are off.</summary>
+    public string GuideUrl { get; set; }
+
+    public int ReadinessCount(Services.ReadinessStatus status) => Readiness.Count(item => item.Status == status);
+
+    public static string Tone(Services.ReadinessStatus status) => status switch
+    {
+        Services.ReadinessStatus.ActionNeeded => "critical",
+        Services.ReadinessStatus.Check => "warning",
+        Services.ReadinessStatus.Ready => "healthy",
+        _ => "muted"
+    };
+
+    public static string Icon(Services.ReadinessStatus status) => status switch
+    {
+        Services.ReadinessStatus.ActionNeeded => "fas fa-times-circle",
+        Services.ReadinessStatus.Check => "fas fa-exclamation-triangle",
+        Services.ReadinessStatus.Ready => "fas fa-check-circle",
+        _ => "fas fa-question-circle"
+    };
 }
 
 public sealed record UpgradeItem(string FriendlyName, string SystemName, string Version, string Author,

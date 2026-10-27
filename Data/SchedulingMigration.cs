@@ -3,7 +3,6 @@ using Nop.Core.Domain.ScheduleTasks;
 using Nop.Core.Infrastructure;
 using Nop.Data.Mapping;
 using Nop.Data.Migrations;
-using Nop.Services.Localization;
 using Nop.Services.ScheduleTasks;
 using Cartenvo.Plugin.Misc.StorePulse.Infrastructure;
 using Cartenvo.Plugin.Misc.StorePulse.Services;
@@ -15,7 +14,7 @@ public class SchedulingMigration : MigrationBase
 {
     public override void Up()
     {
-        EngineContext.Current.Resolve<ILocalizationService>().AddOrUpdateLocaleResource(StorePulseResources.All());
+        MigrationCompat.AddResources(this);
         if (EngineContext.Current.Resolve<IScheduleTaskService>().GetTaskByTypeAsync(StorePulseSchedule.TaskType)
             .GetAwaiter().GetResult() != null) return;
         Insert.IntoTable(NameCompatibilityManager.GetTableName(typeof(ScheduleTask))).Row(new

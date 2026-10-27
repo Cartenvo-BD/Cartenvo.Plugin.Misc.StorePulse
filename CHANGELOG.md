@@ -2,6 +2,14 @@
 
 Versions are `<nopCommerce version>.<release>`, so release 10 is `4.80.10` on nopCommerce 4.80 and `4.90.10` on 4.90.
 
+## 13
+
+- **Before you upgrade to 5.00.** When the target on the Upgrade readiness page is 5.00 or later, a new list shows what in this store needs work: forums, news and polls (they move into plugins), the Manual payment method (no longer included), card details stored in orders, email templates that use the old `%Order.CustomValues%` token, plugin code that uses APIs 5.00 changes (AutoMapper, `RemotePost.Post()`, attribute `PictureId`, forum/news/poll classes), the theme, ASP.NET Core 10 on the server, and old attribute picture links that the 5.00 upgrade would copy a second time.
+- The list is read when the page opens. Nothing is stored or changed, and it doesn't affect the health score. Card details are only counted, never read. Plugin files are read as metadata and never loaded.
+- Each item links to the admin page where it's fixed, and the card links to the nopCommerce 5.0 upgrade guide on cartenvo.com.
+- **nopCommerce 5.00 build.** The same source now also builds `5.00.13` for nopCommerce 5.00 on .NET 10 (IWebHelper's new namespace, linq2db 6 async methods, migration helpers instead of the removed synchronous service methods). The 5.00 build has no readiness list, since the store is already on 5.00.
+- Tested on 4.80 with SQL Server (readiness list with seeded data) and on a fresh 5.00.0 store with SQL Server (install, scan, catalog lists, upgrade page, settings, dashboard card).
+
 ## 12
 
 - **Catalog audit.** 13 new catalog checks, for 19 in total: products without SKU, GTIN or part number, manufacturer, description or URL name; sold-out products that can't be ordered; published products past their end date (customers get a 404); old prices lower than the price (shown as a price rise); products no store or customer role can see; empty categories; categories and manufacturers without meta description; duplicate meta descriptions; reviews waiting more than 7 days for approval.

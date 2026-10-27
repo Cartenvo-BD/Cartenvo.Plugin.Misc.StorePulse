@@ -197,6 +197,84 @@ public static class StorePulseResources
         ["ReviewsWaiting"] = "Reviews older than 7 days"
     };
 
+    /// <summary>Texts for the "Before you upgrade to 5.00" list on the Upgrade readiness page.</summary>
+    public static readonly (string Key, string Text)[] ReadinessTexts =
+    [
+        ("Upgrade.Readiness.Title", "Before you upgrade to {0}"),
+        ("Upgrade.Readiness.Hint", "What in this store needs work for nopCommerce 5.00, read just now. Nothing is changed, and the health score isn't affected."),
+        ("Upgrade.Readiness.Summary", "{0} need action · {1} to check · {2} ready"),
+        ("Upgrade.Readiness.Status.ActionNeeded", "Action needed"), ("Upgrade.Readiness.Status.Check", "Check"),
+        ("Upgrade.Readiness.Status.Ready", "Ready"), ("Upgrade.Readiness.Status.Unknown", "Couldn't check"),
+        ("Upgrade.Readiness.Failed", "This couldn't be checked just now. Reload the page, or check it by hand."),
+        ("Upgrade.Readiness.More", "Showing the first {0}."),
+        ("Upgrade.Readiness.Guide", "Read the nopCommerce 5.0 upgrade guide on cartenvo.com"),
+        ("Upgrade.Readiness.PluginsTitle", "Plugins"),
+
+        ("UPG-001.Title", "Forums"),
+        ("UPG-001.Why", "In 5.00, forums move into the Misc.Forums plugin, which ships with nopCommerce. The topics stay in the database, but the store only shows them once the plugin is installed."),
+        ("UPG-001.Action", "After the upgrade, install Misc.Forums in Local plugins and check the forums on staging before going live."),
+        ("UPG-001.Found", "Forum topics: {0}."), ("UPG-001.FoundOn", "Forum topics: {0}. Forums are turned on."),
+        ("UPG-001.OnEmpty", "Forums are turned on, but there are no topics yet."), ("UPG-001.None", "Forums aren't used."),
+
+        ("UPG-002.Title", "News"),
+        ("UPG-002.Why", "In 5.00, news moves into the Misc.News plugin, which ships with nopCommerce. The news items stay in the database, but the store only shows them once the plugin is installed."),
+        ("UPG-002.Action", "After the upgrade, install Misc.News in Local plugins and check the news pages on staging before going live."),
+        ("UPG-002.Found", "News items: {0}."), ("UPG-002.FoundOn", "News items: {0}. News is turned on."),
+        ("UPG-002.OnEmpty", "News is turned on, but there are no news items yet."), ("UPG-002.None", "News isn't used."),
+
+        ("UPG-003.Title", "Polls"),
+        ("UPG-003.Why", "In 5.00, polls move into the Misc.Polls plugin, which ships with nopCommerce. The polls stay in the database, but the store only shows them once the plugin is installed."),
+        ("UPG-003.Action", "After the upgrade, install Misc.Polls in Local plugins and check the polls on staging."),
+        ("UPG-003.Found", "Polls: {0}."), ("UPG-003.None", "Polls aren't used."),
+
+        ("UPG-004.Title", "Manual payment method"),
+        ("UPG-004.Why", "The Manual payment method (Payments.Manual) doesn't ship with nopCommerce 5.00."),
+        ("UPG-004.Action", "Choose and test another payment method before upgrading, then turn Manual off."),
+        ("UPG-004.Active", "Payments.Manual is installed and active, so customers can choose it at checkout."),
+        ("UPG-004.Installed", "Payments.Manual is installed but not active. You can uninstall it before upgrading."),
+        ("UPG-004.None", "Payments.Manual isn't installed."),
+
+        ("UPG-005.Title", "Card details stored in orders"),
+        ("UPG-005.Why", "The Manual payment method saves card details in orders. In 5.00 nothing in nopCommerce shows or uses them any more, but they stay in the database. Card industry rules (PCI DSS) never allow storing CVV codes."),
+        ("UPG-005.Action", "Back up the database, then ask your developer to clear the card fields of these orders. StorePulse only counts them; it never reads the values."),
+        ("UPG-005.Found", "Orders with a stored card number: {0}."),
+        ("UPG-005.FoundCvv", "Orders with a stored card number: {0}. With a stored CVV code: {1}."),
+        ("UPG-005.None", "No orders have stored card details."),
+
+        ("UPG-006.Title", "Email templates with %Order.CustomValues%"),
+        ("UPG-006.Why", "5.00 replaces this token with %Order.CustomValues.BillingAddress%, %Order.CustomValues.ShippingAddress%, %Order.CustomValues.Payment% and %Order.CustomValues.Shipping%. The upgrade doesn't change your templates, so emails would show the old token as text."),
+        ("UPG-006.Action", "After the upgrade, open each template and replace the old token with the new ones you need. Check the translated versions too."),
+        ("UPG-006.Found", "Templates that use the old token: {0}."), ("UPG-006.None", "No template uses the old token."),
+
+        ("UPG-007.Title", "Plugin code that 5.00 changes"),
+        ("UPG-007.Why", "These plugins use parts of nopCommerce that 5.00 removes or changes: AutoMapper (replaced by Mapster), RemotePost.Post() (now PostAsync()), the PictureId fields of attribute values and combinations, or forum, news and poll classes (moved into plugins). Rebuilding isn't enough; the code has to change."),
+        ("UPG-007.Action", "Ask each vendor for a 5.00 version. This is read from the plugin files, so it's a strong hint, not proof: a plugin can reference something it never uses."),
+        ("UPG-007.Found", "Plugins that use something 5.00 changes: {0} of {1} checked."),
+        ("UPG-007.Unreadable", "Plugin files that couldn't be read: {0}. Nothing was found in the other {1}."),
+        ("UPG-007.None", "Nothing found. Plugins checked: {0}; plugins that ship with nopCommerce aren't checked."),
+
+        ("UPG-008.Title", "Theme"),
+        ("UPG-008.Why", "Themes don't declare which nopCommerce versions they support, and 5.00 changes storefront views. A theme built for 4.90 can break pages."),
+        ("UPG-008.Action", "Ask the theme vendor for a 5.00 version, and test the storefront on staging."),
+        ("UPG-008.Custom", "This store uses the {0} theme."),
+        ("UPG-008.Installed", "Other themes installed: {0}. The store uses DefaultClean."),
+        ("UPG-008.None", "Only DefaultClean is installed."),
+
+        ("UPG-009.Title", ".NET 10 on this server"),
+        ("UPG-009.Why", "nopCommerce 5.00 runs on .NET 10 and needs ASP.NET Core Runtime 10.0.12 or later; on IIS, the .NET 10 Windows Hosting Bundle. This checks the server the store runs on now."),
+        ("UPG-009.Action", "Install the runtime before upgrading, or ask your host. On IIS, restart IIS afterwards."),
+        ("UPG-009.Found", "ASP.NET Core Runtime {0} is installed."),
+        ("UPG-009.Old", "ASP.NET Core Runtime {0} is installed; 5.00 needs {1} or later."),
+        ("UPG-009.Missing", "ASP.NET Core 10 isn't installed. 5.00 needs {0} or later."),
+        ("UPG-009.Unknown", "This store doesn't run on a shared .NET install (for example a self-contained build or a container), so StorePulse can't see other runtimes. Check with your host."),
+
+        ("UPG-010.Title", "Old attribute picture links"),
+        ("UPG-010.Why", "Since 4.70, attribute values and combinations can have several pictures. The 4.70 upgrade copied each old picture link across but didn't always clear it. The 5.00 upgrade copies every old link that's left again, so a picture can show twice, or one you removed can come back."),
+        ("UPG-010.Action", "After a backup, ask your developer to clear the old PictureId column on ProductAttributeValue and ProductAttributeCombination before upgrading. Or upgrade a staging copy first and check these products' attribute pictures."),
+        ("UPG-010.Found", "Old picture links: {0} on attribute values and {1} on combinations. Pictures that would be added twice: {2}."),
+        ("UPG-010.None", "No old attribute picture links are left."),
+    ];
+
     public static Dictionary<string, string> All()
     {
         var items = new Dictionary<string, string>();
@@ -249,6 +327,8 @@ public static class StorePulseResources
         Add("Upgrade.Summary", "{0} of {1} plugins are ready for {2}");
         Add("Upgrade.SummaryDetail", "{0} declare support · {1} ship with nopCommerce · {2} need an update from the vendor");
         Add("Upgrade.Author", "Author"); Add("Upgrade.Declared", "Declared versions"); Add("Upgrade.Status", "Status");
+        foreach (var (key, text) in ReadinessTexts)
+            Add(key, text);
         Add("Widget.Title", "Store health"); Add("Widget.Open", "Open StorePulse"); Add("Widget.Problems", "{0} problems found");
         Add("Widget.NoScan", "No health scan yet. Run one to check tasks, emails, errors and database size.");
         Add("Limits", "Scores cover the checks StorePulse can run. Unknown results are never passes. Counts come from records nopCommerce kept; StorePulse can't prove nothing was missed.");
